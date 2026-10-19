@@ -1,40 +1,46 @@
 generated: '2026-10-17'
-last_updated: '10-19-2026 09:10'
+last_updated: '10-19-2026 09:39'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/planning-artifacts/epics-smeta1-2026-10-17/stories
 development_status:
-  epic-1: in-progress
+  epic-1: done
   1-1-каркас-микросервисов-и-docker-compose: done
-  1-2-локальный-cpu-only-llm-рантайм-q2-q3-16-гб-озу: done
+  1-2-локальный-cpu-only-llm-рантайм-q2-q3-8-гб-озу: done
   1-3-политика-облачного-fallback-и-аудит: done
   epic-1-retrospective: done
+
   epic-2: backlog
   2-1-авторизация-и-привязка-к-компании: backlog
   2-2-договоры-произвольной-глубины-adjacency-list: backlog
   2-3-этапы-договора: backlog
   2-4-подразделы-этапа: backlog
   epic-2-retrospective: optional
+
   epic-3: backlog
   3-1-импорт-справочника-из-excel-с-маппером-колонок: backlog
   3-2-версионирование-справочника: backlog
   3-3-snapshot-расценок-в-позициях-смет: backlog
   epic-3-retrospective: optional
+
   epic-4: backlog
   4-1-загрузка-цифрового-pdf-в-minio-с-валидацией: backlog
   4-2-конвертация-pdf-текст-без-ocr: backlog
   epic-4-retrospective: optional
+
   epic-5: backlog
   5-1-llm-извлечение-спецификации-local-first: backlog
   5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence: backlog
   5-3-api-ручной-проверки-маппинга: backlog
   epic-5-retrospective: optional
+
   epic-6: backlog
   6-1-создание-сметы-и-версий-ровно-одна-активная: backlog
   6-2-готовность-к-diff-между-версиями: backlog
   6-3-детерминированный-расчёт-стоимости: backlog
   epic-6-retrospective: optional
+
   epic-7: backlog
   7-1-навигация-по-иерархии-и-загрузка-pdf: backlog
   7-2-просмотр-спецификации-маппинга-и-стоимости: backlog

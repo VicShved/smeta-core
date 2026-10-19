@@ -1,12 +1,12 @@
 ---
-title: 'Story 1.2 — Локальный CPU-only LLM-рантайм (q2–q3, 16 ГБ ОЗУ)'
+title: 'Story 1.2 — Локальный CPU-only LLM-рантайм (q2–q3, 8 ГБ ОЗУ)'
 type: 'feature'
 created: '2026-10-18'
 status: 'done'
 route: 'dispatch'
 review_loop_iteration: 0
 baseline_commit: 78bb41638237451f0acdd037938acae2eec53dde
-story_key: '1-2-локальный-cpu-only-llm-рантайм-q2-q3-16-гб-озу'
+story_key: '1-2-локальный-cpu-only-llm-рантайм-q2-q3-8-гб-озу'
 ---
 
 <frozen-after-approval>

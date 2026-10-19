@@ -36,4 +36,4 @@
 
 - Единственная система спек — build-спеки в `_bmad-output/implementation-artifacts/` (формат: frontmatter story_key/status + Tasks & Acceptance + Review Triage Log), файл `spec-<эпик>-<история>-<описание>.md`.
 - Канонический слой `_bmad-output/specs/` (bmad-spec) **не используется**; контракт истории не дублировать во второй системе. Если bmad-spec всё же вызван — перенести контракт в build-спеку и удалить выход `specs/`.
-- Slug — кириллица (образец: `spec-1-2-локальный-cpu-only-llm-рантайм-q2q3-16-гб-озу.md`). Существующий латинский slug `spec-1-3-politika-oblachnogo-fallback-i-audit.md` не переименовывать (исторический).
+- Slug — кириллица (образец: `spec-1-2-локальный-cpu-only-llm-рантайм-q2q3-8-гб-озу.md`). Существующий латинский slug `spec-1-3-politika-oblachnogo-fallback-i-audit.md` не переименовывать (исторический).
