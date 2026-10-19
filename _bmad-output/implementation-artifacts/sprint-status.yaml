@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-19-2026 23:17'
+last_updated: '10-19-2026 23:41'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -15,7 +15,7 @@ development_status:
   2-0-edge-jwt-и-identity-заголовки: done
   2-1-авторизация-и-привязка-к-компании: review
   2-2-договоры-произвольной-глубины-adjacency-list: review
-  2-3-этапы-договора: backlog
+  2-3-этапы-договора: review
   2-4-подразделы-этапа: backlog
   epic-2-retrospective: optional
 
