@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-19-2026 09:39'
+last_updated: '10-19-2026 13:20'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -11,8 +11,8 @@ development_status:
   1-3-политика-облачного-fallback-и-аудит: done
   epic-1-retrospective: done
 
-  epic-2: backlog
-  2-1-авторизация-и-привязка-к-компании: backlog
+  epic-2: in-progress
+  2-1-авторизация-и-привязка-к-компании: review
   2-2-договоры-произвольной-глубины-adjacency-list: backlog
   2-3-этапы-договора: backlog
   2-4-подразделы-этапа: backlog
