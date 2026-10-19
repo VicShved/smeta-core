@@ -32,8 +32,8 @@ purpose: Build substrate — invariants preventing drift between services
 
 ### AD-004: CPU-only локальная LLM
 - **Binds:** llm-gateway (local runtime)
-- **Prevents:** привязка к GPU, выход за 16 ГБ ОЗУ
-- **Rule:** Локальный runtime — CPU-only, 16 ГБ ОЗУ. Предпочтение GGUF малых квантов **q2–q3**. Без GPU.
+- **Prevents:** привязка к GPU, выход за 8 ГБ ОЗУ
+- **Rule:** Локальный runtime — CPU-only, 8 ГБ ОЗУ. Предпочтение GGUF малых квантов **q2–q3**. Без GPU.
 
 ### AD-005: Цифровые PDF без OCR
 - **Binds:** pdf-extract

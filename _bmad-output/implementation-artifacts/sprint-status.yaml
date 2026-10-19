@@ -1,77 +1,70 @@
-# STATUS DEFINITIONS:
-# ==================
-# Epic Status:
-#   - backlog: Epic not yet started
-#   - in-progress: Epic actively being worked on
-#   - done: All stories in epic completed
-
-# Story Status:
-#   - backlog: Story only exists in epic file
-#   - ready-for-dev: Story file created, ready for development
-#   - in-progress: Developer actively working on implementation
-#   - review: Implementation complete, ready for review
-#   - done: Story completed
-
-# Retrospective Status:
-#   - optional: Can be completed but not required
-#   - done: Retrospective has been completed
-
-# Action Item Status:
-#   - open: Committed during a retrospective, not yet addressed
-#   - in-progress: Actively being worked on
-#   - done: Completed
-
-# WORKFLOW NOTES:
-# ===============
-# - Epic transitions to 'in-progress' automatically when its first story starts (via build's sprint sync)
-# - Stories can be worked in parallel if team capacity allows
-# - Developer typically creates the next story after the previous one is 'done' to incorporate learnings
-# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
-# - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: '2026-10-17'
-last_updated: '2026-10-17'
+last_updated: '10-19-2026 08:45'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/planning-artifacts/epics-smeta1-2026-10-17/stories
 development_status:
-  epic-1: backlog
-  1-1-каркас-микросервисов-и-docker-compose: backlog
-  1-2-локальный-cpu-only-llm-рантайм-q2-q3-16-гб-озу: backlog
-  1-3-политика-облачного-fallback-и-аудит: backlog
-  epic-1-retrospective: optional
-
+  epic-1: in-progress
+  1-1-каркас-микросервисов-и-docker-compose: done
+  1-2-локальный-cpu-only-llm-рантайм-q2-q3-16-гб-озу: done
+  1-3-политика-облачного-fallback-и-аудит: done
+  epic-1-retrospective: done
   epic-2: backlog
   2-1-авторизация-и-привязка-к-компании: backlog
   2-2-договоры-произвольной-глубины-adjacency-list: backlog
   2-3-этапы-договора: backlog
   2-4-подразделы-этапа: backlog
   epic-2-retrospective: optional
-
   epic-3: backlog
   3-1-импорт-справочника-из-excel-с-маппером-колонок: backlog
   3-2-версионирование-справочника: backlog
   3-3-snapshot-расценок-в-позициях-смет: backlog
   epic-3-retrospective: optional
-
   epic-4: backlog
   4-1-загрузка-цифрового-pdf-в-minio-с-валидацией: backlog
   4-2-конвертация-pdf-текст-без-ocr: backlog
   epic-4-retrospective: optional
-
   epic-5: backlog
   5-1-llm-извлечение-спецификации-local-first: backlog
   5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence: backlog
   5-3-api-ручной-проверки-маппинга: backlog
   epic-5-retrospective: optional
-
   epic-6: backlog
   6-1-создание-сметы-и-версий-ровно-одна-активная: backlog
   6-2-готовность-к-diff-между-версиями: backlog
   6-3-детерминированный-расчёт-стоимости: backlog
   epic-6-retrospective: optional
-
   epic-7: backlog
   7-1-навигация-по-иерархии-и-загрузка-pdf: backlog
   7-2-просмотр-спецификации-маппинга-и-стоимости: backlog
   epic-7-retrospective: optional
+action_items:
+  - id: "retro-epic1-1"
+    epic: 1
+    action: "Закоммитить работу Epic 1 в llm-gateway и deploy с привязкой к историям
+      (восстановить атрибуцию diff)"
+    owner: "Shved"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-10-19-2026.md"
+  - id: "retro-epic1-2"
+    epic: 1
+    action: "Согласировать лимит памяти 8ГБ vs 16ГБ: обновить planning-документы (epics.md
+      NFR-001/Story 1.2, ARCHITECTURE-SPINE AD-004) либо вернуть 16ГБ в runtime"
+    owner: "Shved"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-10-19-2026.md"
+  - id: "retro-epic1-3"
+    epic: 1
+    action: "Принять решение о единой системе спек (implementation-artifacts vs канонический
+      specs/) и соглашении об именовании slug"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-10-19-2026.md"
+  - id: "retro-epic1-4"
+    epic: 1
+    action: "Deferred: расширить redaction_mode сверх structure_only при появлении
+      второго режима редукции (medium-находка review Story 1.3)"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-10-19-2026.md"
