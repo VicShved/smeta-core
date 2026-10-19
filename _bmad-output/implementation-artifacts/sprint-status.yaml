@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-19-2026 08:45'
+last_updated: '10-19-2026 09:10'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -59,12 +59,12 @@ action_items:
     action: "Принять решение о единой системе спек (implementation-artifacts vs канонический
       specs/) и соглашении об именовании slug"
     owner: "Shved"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-10-19-2026.md"
   - id: "retro-epic1-4"
     epic: 1
     action: "Deferred: расширить redaction_mode сверх structure_only при появлении
       второго режима редукции (medium-находка review Story 1.3)"
     owner: "Shved"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-10-19-2026.md"
