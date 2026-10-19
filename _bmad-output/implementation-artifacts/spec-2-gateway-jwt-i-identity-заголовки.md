@@ -110,6 +110,11 @@ context:
 - `POST /v1/auth/register/` со слэшем получает 401 (EC7): не бытовой случай; фикс — нормализация пути.
 - Compose-контракт проверяется только `docker compose config -q` (VG3): в `deploy` нет тестовой инфраструктуры, проводка покрыта ручным smoke из Verification; фикс — новые CI-ассерты, не прямая правка.
 
+**follow-up (walkthrough 2026-10-19):**
+- [patch] `deploy/docker-compose.yml` — dev-дефолт `JWT_SECRET` устранён: `${JWT_SECRET:?...}` для `auth-users` и `api-gateway`, `.env.example` без значения, README переписан (`.env` теперь обязателен). (walkthrough, решение Shved) — `deploy@1090621`.
+- [tracking] Edge-слой внесён в трекинг эпика: `epics.md` Story 2.0 (внеплановая) и `sprint-status.yaml` `2-0-edge-jwt-и-identity-заголовки: done`.
+- Оставлено намеренно (по обсуждению): порядок «404 раньше 401» с 401 на не-POST `/v1/auth/*`; `/health` не агрегирует upstream; все остальные low-находки без изменений.
+
 **rejected — правило 86 (фикс = правка этой спеки):**
 - Утверждение спеки «/health проксируется без токена» vs локальный `/health` (уже покрыто `rejected — false` EC9).
 - Дублирующийся заголовок `## Implementation Notes` в спеке (verification-gap «Other findings»): фикс — правка этой же спеки; дубль удалён попутно как исправление собственной ошибки триажа.
