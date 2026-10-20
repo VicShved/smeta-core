@@ -2,7 +2,7 @@
 title: 'Story 2.4 — Подразделы этапа (stage_subdivision)'
 type: 'feature'
 created: '2026-10-19'
-status: 'done'
+status: 'cancelled'
 route: 'dispatch'
 baseline_commit: '30b9078beecc2cb5b823b9b70b18e26030317be3'
 review_loop_iteration: 1
@@ -95,6 +95,13 @@ context:
 ## Implementation Notes
 
 ## Spec Change Log
+
+### 2026-10-20: история отменена человеком (не loopback)
+
+- **Решение владельца:** сущность `stage_subdivision` упразднена целиком — сметы привязываются напрямую к этапу (`estimate.stage_id`), уровень «Подраздел этапа» убран из доменной иерархии.
+- **Что сделано:** revert коммитов истории в `company-org` (`703ec4f`) и `api-gateway` (`b2b0a4d`); дерево вернулось к baseline (47/28 passed, ruff чисто). Статус истории — `cancelled`, ключ удалён из `sprint-status.yaml`, Story 2.4 удалён из `epics.md`, FR-002 и `ARCHITECTURE-SPINE`/`OVERVIEW` поправлены (`estimate.stage_subdivision_id` → `stage_id`).
+- **Не откатывается (история):** `<frozen-after-approval>` и Review Triage Log остаются записью о том, что была реализована и прошла 3-слойное ревью с loopback. Итерация `review_loop_iteration: 1` сохранена.
+- **Хранить для будущего:** если сущность подразделов вернётся (решение по гранулярности привязки смет — см. `docs/brief.md`, открытый вопрос), откатывать отсюда, а не переизобретать: вся матрица, Keep-инструкции и scoping-паттерн (`contract_id` из пути) описаны ниже в логе итераций 1–2.
 
 ### Итерация 1 → 2 (loopback `bad_spec`)
 

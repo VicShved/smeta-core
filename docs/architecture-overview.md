@@ -33,7 +33,7 @@ C4Container
   Container(ui, "ui", "Vue 3.5 + Vite 8", "Веб-интерфейс MVP")
   Container(gw, "api-gateway", "FastAPI", "Единственная точка входа; проверка JWT; identity-заголовки")
   Container(auth, "auth-users", "FastAPI", "Выпуск JWT; users и credentials")
-  Container(org, "company-org", "FastAPI", "Компании, договоры, этапы, подразделы")
+  Container(org, "company-org", "FastAPI", "Компании, договоры, этапы")
   Container(est, "estimate", "FastAPI", "Сметы и версии со снапшотами")
   Container(cat, "rate-catalog", "FastAPI", "Импорт .xlsx, маппер колонок, версии справочника")
   Container(pdf, "pdf-extract", "FastAPI", "PDF с текстовым слоем → текст")
@@ -71,7 +71,7 @@ C4Container
 | --- | --- | --- |
 | api-gateway | Маршрутизация, проверка JWT, установка identity-заголовков | `smeta/api-gateway/` |
 | auth-users | Пользователи, credentials, выпуск JWT | `smeta/auth-users/` |
-| company-org | Компании, договоры (adjacency list), этапы, подразделы | `smeta/company-org/` |
+| company-org | Компании, договоры (adjacency list), этапы | `smeta/company-org/` |
 | estimate | Сметы, версии (активная ровно одна), позиции со снапшотами | `smeta/estimate/` |
 | rate-catalog | Импорт справочника из `.xlsx`, версии и хранение | `smeta/rate-catalog/` |
 | pdf-extract | PDF с текстовым слоем → текст; валидация цифрового PDF | `smeta/pdf-extract/` |
@@ -107,7 +107,7 @@ C4Container
 ## 7. Что уже сделано и что дальше
 
 - **Epic 1 (готово):** llm-gateway с локальной CPU-only моделью, политика cloud-fallback (structure_only) и аудит.
-- **Epic 2 (в работе):** аутентификация и привязка к компании, договоры произвольной глубины, этапы, подразделы. Именно на этом этапе вводятся AD-010…AD-015.
+- **Epic 2 (в работе):** аутентификация и привязка к компании, договоры произвольной глубины, этапы. Именно на этом этапе вводятся AD-010…AD-015.
 - **Далее:** справочник расценок (Epic 3), сметы и расчёт (Epic 4–5).
 
 ## 8. Глоссарий
@@ -116,7 +116,7 @@ C4Container
 | --- | --- |
 | Spine | `ARCHITECTURE-SPINE.md` — короткий набор инвариантов (AD-xxx), которым обязаны следовать все сервисы |
 | AD | Architecture Decision: решение с полями Binds / Prevents / Rule |
-| Смета | Набор позиций с расценками, привязанный к подразделу этапа |
+| Смета | Набор позиций с расценками, привязанный к этапу |
 | Версия сметы | Снимок сметы; активна ровно одна |
 | Снапшот расценки | Значения расценки на момент расчёта; защищает старые версии |
 | ЕИ | Единица измерения |

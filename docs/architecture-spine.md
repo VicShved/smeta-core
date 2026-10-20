@@ -7,7 +7,7 @@ paradigm: 'DDD-границы + service-per-capability, hexagonal (ports & adapt
 scope: 'инварианты, удерживающие сервисы smeta1 и инфраструктуру деплоя от расхождений'
 status: final
 created: 2026-10-17
-updated: 2026-10-19
+updated: 2026-10-20
 binds: ['api-gateway', 'auth-users', 'company-org', 'estimate', 'pdf-extract', 'llm-gateway', 'mapping-service', 'rate-catalog', 'calc-service', 'ui', 'deploy']
 sources: []
 companions: []
@@ -94,7 +94,7 @@ flowchart TD
 ### AD-013: Tenancy-изоляция по company_id [ADOPTED]
 - **Binds:** все сервисы, хранящие доменные данные (company-org, estimate, rate-catalog, …)
 - **Prevents:** утечка данных между компаниями
-- **Rule:** `company_id` хранится на агрегатных корнях (`contract`, `estimate`, `rate_catalog`) и на дочерних строках, адресуемых напрямую (`stage`, `stage_subdivision`); позиции смет получают scope через владельца-версию сметы. Доступ по id всегда дополнительно проверяет `company_id` владельца. Каждый сервис до бизнес-логики обязан извлечь identity из заголовков (AD-010) и фильтровать все выборки по `company_id` **в репозитории**. Запрос без `company_id` невозможен; отсутствие identity — отказ, а не выборка всех строк.
+- **Rule:** `company_id` хранится на агрегатных корнях (`contract`, `estimate`, `rate_catalog`) и на дочерних строках, адресуемых напрямую (`stage`); позиции смет получают scope через владельца-версию сметы. Доступ по id всегда дополнительно проверяет `company_id` владельца. Каждый сервис до бизнес-логики обязан извлечь identity из заголовков (AD-010) и фильтровать все выборки по `company_id` **в репозитории**. Запрос без `company_id` невозможен; отсутствие identity — отказ, а не выборка всех строк.
 
 ### AD-014: Один Postgres, база на сервис, миграции Alembic [ADOPTED]
 - **Binds:** все сервисы с БД + deploy
@@ -109,7 +109,7 @@ flowchart TD
 ## Services (микросервисные границы)
 - **api-gateway** — маршрутизация, **проверка JWT (единственная точка)**, установка/перезапись identity-заголовков, rate-limits при необходимости
 - **auth-users** — выпуск JWT, users/credentials, привязка пользователя к компании
-- **company-org** — компании, договоры (adjacency list, произвольная глубина), этапы, подразделы этапа
+- **company-org** — компании, договоры (adjacency list, произвольная глубина), этапы
 - **estimate** — сметы, версии (активная ровно одна), позиции (со снапшотами)
 - **pdf-extract** — PDF→текст (pdfplumber/pypdfium2), валидация цифрового PDF
 - **llm-gateway** — local (CPU-only, GGUF q2–q3) + cloud (только structure_only + аудит + allow_cloud_fallback)
@@ -179,8 +179,7 @@ flowchart LR
 - **company** (id, name, ...)
 - **contract** (id, company_id, parent_id, name, ...) — adjacency list, произвольная глубина
 - **stage** (id, company_id, contract_id, name, ...)
-- **stage_subdivision** (id, company_id, stage_id, name, ...) — «подраздел этапа»
-- **estimate** (id, company_id, stage_subdivision_id, name, ...)
+- **estimate** (id, company_id, stage_id, name, ...) — привязка к этапу (уровень «подраздел этапа» упразднён 2026-10-20)
 - **estimate_version** (id, estimate_id, version_no, is_active, calculated_at, ...) — ровно одна is_active
 - **estimate_item** (id, estimate_version_id, row_ref, material_work, unit_orig, qty, section, rate_catalog_id?, **rate_snapshot_id**, **unit_snapshot**, **rate_amount_snapshot**, confidence, status, ...)
 - **rate_catalog** (id, company_id, current_version_id, ...)
@@ -230,7 +229,7 @@ flowchart LR
 - **Схема БД детально** (таблицы, индексы, миграции) — владеют истории эпиков
 - **Алгоритм подписи RS256/JWKS**: замена HMAC без изменения контракта токена — revisit при выносе сервисов за доверенную сеть
 - **Взаимная аутентификация сервисов (mTLS)**: при TTL 168ч и проверке только на edge доверие опирается на сеть; revisit при выносе сервисов за доверенную сеть
-- **Порядок этапов и уникальность имён** этапов/подразделов — решается в story 2.3
+- **Порядок этапов и уникальность имён** этапов — решается в story 2.3
 
 ## Open Questions (минимум)
 - Конкретный брокер очереди? (Deferred)
