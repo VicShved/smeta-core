@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-20-2026 14:34'
+last_updated: '10-20-2026 15:30'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -20,7 +20,7 @@ development_status:
 
   epic-3: in-progress
   3-1-импорт-справочника-из-excel-с-маппером-колонок: review
-  3-2-версионирование-справочника: backlog
+  3-2-версионирование-справочника: review
   3-3-snapshot-расценок-в-позициях-смет: backlog
   epic-3-retrospective: optional
 
