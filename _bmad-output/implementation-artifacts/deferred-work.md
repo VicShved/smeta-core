@@ -34,3 +34,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-1-импорт-справочника-из-excel-с-маппером-колонок.md`
   summary: Нет структурного JSON-логирования с `request_id` и именем сервиса, хотя этого требует архитектура.
   evidence: В rate-catalog, как и в остальных сервисах, отсутствует logging-конфигурация; требование общее для системы, а не следствие Story 3.1.
+
+## Deferred from: Story 3.3 scope check (2026-10-20)
+
+- source_spec: none
+  summary: Story 3.3 «Snapshot расценок в позициях смет» отложена до появления фундамента Epic 6 (estimate-модели/версии/позиции и детерминированный расчёт).
+  evidence: `estimate` и `calc-service` — каркасы только с `/health`: нет моделей `estimate`/`estimate_version`/`estimate_item`, миграций, БД `estimate` в compose и API; у rate-catalog нет чтения строк версии. AC «позиции сохраняют snapshot при расчёте» и «повторный расчёт» проверить нечем. Решение владельца (2026-10-20): отложить до Epic 6; при возврате учесть, что позиции принадлежат estimate, а rate-catalog должен отдавать неизменяемые расценки версии по API (AD-014 запрещает прямое чтение чужой БД).
