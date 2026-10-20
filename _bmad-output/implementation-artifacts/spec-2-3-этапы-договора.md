@@ -125,6 +125,22 @@ context:
 
 Loopback не требуется (нет intent_gap/bad_spec). Патчи G1–G3 отправлены тому же реализационному субагенту (`ses_eaa9445feffeNTGqcxbJQ5IfZ4`).
 
+### Review Findings
+
+Код-ревью реализации (bmad-code-review, full, 2026-10-20; диф `story23.diff`). Слои: blind-hunter, edge-case-hunter, verification-gap, acceptance-auditor. Ранее оттриаженные в таблице выше находки с тем же локусом и утверждением не переоткрывались (carry).
+
+- [x] [Review][Patch] Применить нормализацию UTC к `_contract_to_domain`/`_to_domain` [company-org/app/infrastructure/repository.py:97-122] — применено: общий `_ensure_utc` во всех трёх мапперах.
+- [x] [Review][Patch] Ассертить equality 404-тела и для LIST [company-org/tests/test_stages.py:245-257] — применено: equality-ассерт на GET-листинг в `test_foreign_contract_identical_to_missing_contract`.
+- [x] [Review][Patch] Убрать `KeyError` в тестовом стабе шлюза [api-gateway/tests/test_gateway.py:46] — применено: `_responses_by_method.get(request.method) or self._response`.
+- [x] [Review][Defer] `make_session_factory` не кэширует engine (5 engine на `main`) [company-org/app/infrastructure/db.py:10-15] — deferred: pre-existing паттерн с Story 2.1/2.2, не этой историей; фикс — `@lru_cache`/единый sessionmaker в wiring.
+
+**Отклонено (Rejected):**
+- `false`: `make_session_factory` вызывает TypeError — проверено, сигнатура `dsn: str | None = None` совпадает со всеми 5 вызовами; находка edge-слоя — typo в сниппете.
+- `false`: `create_stage` FK-гонка → 500; `repository.add` не блокирует чужой тенант — удаления договора/компании нет, состояние недостижимо (carry #7,#10).
+- `false`: дифф правит `api-gateway` при Never — внутреннее противоречие спеки: Tasks/Code Map прямо требуют эти тесты, prod-код шлюза не менялся.
+- `false`: изменён прежний тест 2.2 — санкционировано Review Triage Log (группа G2).
+- `low`: `name_must_not_be_blank` скопирован 3×; дублирование scope-guard-преамбулы; ложный докстринг `StageRepository.add`; теги `companies`+`stages`; FK-асимметрия `ondelete` — фиксы добавляют общий тип/хелпер/композитный FK; названного вреда нет (carry #5,#6,#11).
+
 ## Design Notes
 
 - Вложенный путь `/v1/contracts/{cid}/stages` выбран, чтобы edge-префикс `/v1/contracts` уже маршрутизировал эндпоинт (правок `api-gateway` нет) и связь читалась из пути; `company_id` при этом — только из заголовка (AD-013), не из пути.

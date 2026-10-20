@@ -92,6 +92,7 @@ context:
 ## Spec Change Log
 
 - 2026-10-19: контракт не менялся; отмечены выполненные задачи и результаты верификации. Решения по контракту (email+пароль, scrypt, компенсация удалением, доверие внутренней сети + Idempotency-Key) реализованы без изменений.
+- 2026-10-20: **переутверждение frozen Never** (код-ревью реализации, decision-needed). Публикация порта Postgres `ports: - "127.0.0.1:5432:5432"` в `deploy/docker-compose.yml` сохранена как сознательное отклонение для локального хостового доступа к БД (owner decision, выбор 1). Never-оговорка «публикация портов» относится к edge-слою (AD-010: наружу экспонируется только api-gateway); внутренние сервисы по-прежнему только `expose`, порт БД ограничен loopback-биндом.
 
 
 ## Review Triage Log
@@ -129,6 +130,23 @@ context:
 - B18 дублирование креденшелов Postgres в `docker-compose.yml`/`.env.example` (POSTGRES_USER/PASSWORD vs дефолты DSN): раскрыто комментарием в `.env.example`, фикс — перестройка env.
 - B20 таблица `user` — зарезервированное слово Postgres: SQLAlchemy квотирует, e2e `up --build` работает; фикс — переименование таблицы + правка спека.
 - B21 нет README/инструкций по миграциям и env: новая документация.
+
+### Review Findings
+
+Код-ревью реализации (bmad-code-review, full, 2026-10-20; диф `story21.diff`). Слои: blind-hunter, edge-case-hunter, verification-gap, acceptance-auditor. Ранее оттриаженные в логе выше находки с тем же локусом и утверждением не переоткрывались (carry).
+
+- [x] [Review][Rejected] Публикация порта Postgres в хост [deploy/docker-compose.yml:43-44] — утверждено владельцем 2026-10-20 (выбор 1): бинд `127.0.0.1:5432:5432` сохранён как сознательное отклонение для локального хостового доступа к БД; переутверждение Never зафиксировано в Spec Change Log.
+- [x] [Review][Patch] Нейтрализовать detail 401 `MissingCompanyScope` [company-org/app/transport/problem.py:60] — применено: detail → «company scope could not be established» (problem.py:60, domain/errors.py:21).
+- [x] [Review][Patch] Запуск в контейнере (initdb → `alembic upgrade head` → uvicorn) не проверяется автоматически [company-org/Dockerfile:22, auth-users/Dockerfile:22] — применено: шаг `docker build` в CI обоих сервисов.
+- [x] [Review][Patch] Рев CD: `deploy/README.md` рассинхронизирован с compose [deploy/README.md:10] — применено: «Postgres 18» + database-per-service (AD-014).
+- [x] [Review][Defer] Миграции/запросы проверяются только на SQLite, деплой идёт на PostgreSQL [company-org/tests, auth-users/tests] — deferred: postgres service-контейнер в CI; закрывается compose-smoke из patch выше.
+
+**Отклонено (Rejected):**
+- `false`: идемпотентность подорвана компенсацией (E6/B8) — ключ=`str(user.id)` намеренный контракт; orphan-компания требует сбоя в узком окне, утверждён человеком.
+- `false`: `CompanyResponse` отдаёт `idempotency_key` — тот же UUID в claim `sub`, раскрытия нет (carry).
+- `false`: дефолтный `JWT_SECRET` в compose — уже исправлено коммитом `1090621` (`${JWT_SECRET:?}`).
+- `low`: `Idempotency-Key` >255 → 500; `IdempotencyKeyConflict`/catch-all без problem+json; неполная компенсация `update`/`issue`; нет race-тестов; 4xx→502; `/health` статичен; нет `depends_on: company-org`; обе БД под `postgres`; нет rate limiting/логирования; дублированный `problem.py`; `IntegrityError` без разбора констрейнта; мёртвый `role`/`MissingCompanyScope`; нет read-эндпоинтов — каждый фикс добавляет обработчики/ветки/функциональность сверх прямой правки; нынешнее поведение не встречается в обычном использовании.
+- `low`: line-length 100 в 8 местах (Dockerfile/models/repository/problem/company_client) — `ruff check` E501 не входит в дефолтный select, поведение не затронуто.
 
 ## Design Notes
 

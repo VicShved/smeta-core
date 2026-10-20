@@ -131,6 +131,20 @@ context:
 
 Итог: intent_gap/bad_spec отсутствуют; применены patch #2 и #5, #19 вынесена в deferred-work, остальные отклонены.
 
+### Review Findings
+
+Код-ревью реализации (bmad-code-review, full, 2026-10-20; диф `story22.diff`). Слои: blind-hunter, edge-case-hunter, verification-gap, acceptance-auditor. Ранее оттриаженные в таблице выше находки с тем же локусом и утверждением не переоткрывались (carry).
+
+- [x] [Review][Patch] Закрепить trim имени договора тестом [company-org/tests/test_contracts.py:122] — применено: `test_create_root_trims_surrounding_whitespace`.
+- [x] [Review][Patch] Закрепить границу `max_length=255` тестом [company-org/tests/test_contracts.py:238] — применено: кейс `{"name": "x" * 256}` в `test_blank_name_returns_422_problem_json`.
+- [x] [Review][Defer] `deploy/README.md` рассинхронизирован под изменения Story 2.1 — deferred: правка относится к `deploy`, а не к этой истории; сделана в рамках Story 2.1 (см. её Review Findings).
+
+**Отклонено (Rejected):**
+- `false`: `Contract.create` не валидирует `name` — вызывающий всегда транспорт-схема с `max_length`; иные клиенты use case'а в репо отсутствуют.
+- `false`: 0002 не покрывает сохранность строк — `test_upgrade_from_0002_preserves_contract_rows` существует (test_migrations.py:77) и ассертит строки `contract`; `0001→head` сохраняет `company`.
+- `false`: `deploy/README.md` про Postgres 16 / database-per-service — уже отклонено в таблице выше (carry #17? — не переоткрывать); конкретно здесь — docs-drift из Story 2.1.
+- `low`: двойной commit; N+1 подъём; `MAX_PARENT_CHAIN_STEPS`→409; LSP port↔impl; сирота→cycle 500; висячий parent→404; два источника правды cycle; RecursionError; FK/ondelete не проверены; нет `Idempotency-Key`; `list_by_company` без ORDER BY/лимита; `_require_company_id` дублирует текст (carry #3–#14) — фиксы добавляют SQL-рекурсию/композитный FK/пагинацию/поверхность; практическая достижимость требует порчи данных или объёмов вне MVP.
+
 ## Design Notes
 
 - insert-only: новый узел не станет предком существующего → реально возможны только самоссылка (недостижима, `id` даёт сервер) и чужой цикл в БД; подъём с ограничителем закрывает оба и готовит почву для `move`. Ограничитель ≠ лимит вложенности (AD-006).

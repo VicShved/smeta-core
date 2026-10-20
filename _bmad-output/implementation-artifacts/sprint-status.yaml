@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-20-2026 09:20'
+last_updated: '10-20-2026 12:39'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -11,12 +11,12 @@ development_status:
   1-3-политика-облачного-fallback-и-аудит: done
   epic-1-retrospective: done
 
-  epic-2: in-progress
+  epic-2: done
   2-0-edge-jwt-и-identity-заголовки: done
-  2-1-авторизация-и-привязка-к-компании: review
-  2-2-договоры-произвольной-глубины-adjacency-list: review
-  2-3-этапы-договора: review
-  epic-2-retrospective: optional
+  2-1-авторизация-и-привязка-к-компании: done
+  2-2-договоры-произвольной-глубины-adjacency-list: done
+  2-3-этапы-договора: done
+  epic-2-retrospective: done
 
   epic-3: backlog
   3-1-импорт-справочника-из-excel-с-маппером-колонок: backlog
@@ -74,3 +74,16 @@ action_items:
     owner: "Shved"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-10-19-2026.md"
+  - id: "epic-2-retro-item-5-добавить-postgres-service-контейнер-в-ci"
+    epic: 2
+    action: "Добавить postgres service-контейнер в CI company-org и auth-users и прогонять
+      тесты/миграции на PostgreSQL (или compose-smoke в deploy-CI)"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-10-20-2026.md"
+  - id: "epic-2-retro-item-6-кэшировать-make_session_factory-lru_cach"
+    epic: 2
+    action: "Кэшировать make_session_factory (@lru_cache/единый sessionmaker в wiring.py)"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-10-20-2026.md"
