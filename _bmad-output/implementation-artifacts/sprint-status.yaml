@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-20-2026 20:19'
+last_updated: '10-20-2026 21:40'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -35,8 +35,8 @@ development_status:
   5-3-api-ручной-проверки-маппинга: backlog
   epic-5-retrospective: optional
 
-  epic-6: backlog
-  6-1-создание-сметы-и-версий-ровно-одна-активная: backlog
+  epic-6: in-progress
+  6-1-создание-сметы-и-версий-ровно-одна-активная: review
   6-2-готовность-к-diff-между-версиями: backlog
   6-3-детерминированный-расчёт-стоимости: backlog
   epic-6-retrospective: optional

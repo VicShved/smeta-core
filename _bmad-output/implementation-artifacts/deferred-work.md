@@ -91,3 +91,21 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence.md`
   summary: Нет пагинации/кэша активных расценок: mapping загружает весь справочник на каждый запрос.
   evidence: Объём реального справочника в MVP неизвестен; кэш по версии/пагинация нужны после появления данных.
+
+## Deferred from: Story 5.3 scope check (2026-10-20)
+
+- source_spec: none
+  summary: Story 5.3 «API ручной проверки маппинга» отложена до появления фундамента Epic 6 (сметы, версии и позиции, Story 6.1), поверх которого строится review API.
+  evidence: `estimate` — каркас только с `/health`, моделей `estimate`/`estimate_version`/`estimate_item`, миграций и API нет; Story 5.2 stateless и предложения не сохраняет. Решение владельца (2026-10-20): вариант C — не заводить review-хранилище в mapping-service и не создавать частичный estimate в 5.3. При возврате: позиции, статус и выбранная расценка/ЕИ принадлежат estimate (AD-013); review API подтверждения/исправления и выделение `confidence < 0.70` строятся поверх `estimate_item` после 6.1; снапшоты и расчёт — Epic 6 (6.3).
+
+## Deferred from: code review of spec-6-1-создание-сметы-и-версий-ровно-одна-активная.md (2026-10-20)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-6-1-создание-сметы-и-версий-ровно-одна-активная.md`
+  summary: Postgres-ветка частичного уникального индекса `uq_estimate_version_one_active` (`postgresql_where`) не исполняется ни одним тестом; SQLite-only прогон не ловит её поломку.
+  evidence: Все тесты миграций используют `sqlite:///`; в CI estimate/deploy нет Postgres-сервиса. Удаление `postgresql_where` оставляет suite зелёным, а на production-Postgres индекс становится обычным UNIQUE(estimate_id). Закрывается добавлением Postgres-service в CI — общая задача, уже отмеченная в ретро Epic 2/4.
+- source_spec: `_bmad-output/implementation-artifacts/spec-6-1-создание-сметы-и-версий-ровно-одна-активная.md`
+  summary: Entrypoint контейнера estimate (`alembic upgrade head` + uvicorn) и COPY миграций не проверяются автоматически; сломанный CMD проявится только при деплое.
+  evidence: CI запускает ruff/pytest, deploy-CI — только `docker compose config -q`; `docker build` не исполняет CMD. Нужен container-smoke (build + run с DSN и проверка `/health`) — общая инфра-задача деплоя.
+- source_spec: `_bmad-output/implementation-artifacts/spec-6-1-создание-сметы-и-версий-ровно-одна-активная.md`
+  summary: Dockerfile estimate ставит зависимости через `pip install .`, игнорируя `uv.lock`; сборка не воспроизводима по lock-файлу.
+  evidence: Тот же паттерн у rate-catalog/pdf-extract; воспроизводимость сборки — pre-existing инфра-задача, уже отмеченная в deferred-work по Story 4.1.
