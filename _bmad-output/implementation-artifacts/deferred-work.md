@@ -19,3 +19,18 @@
 
 - `make_session_factory` не кэширует engine: каждый `make_*_runner` строит свою фабрику, на один импорт `main.py` создаётся 5 engine с отдельными пулами. Pre-existing паттерн Story 2.1/2.2; фикс — `@lru_cache`/единый sessionmaker в wiring.
 
+
+## Deferred from: code review of spec-3-1-импорт-справочника-из-excel-с-маппером-колонок.md (2026-10-20)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-1-импорт-справочника-из-excel-с-маппером-колонок.md`
+  summary: `initdb` создаёт базу `rate_catalog` только на свежем volume; существующий dev-volume не получит её, и контейнер rate-catalog упадёт.
+  evidence: `deploy/initdb/01-create-databases.sql` выполняется Postgres только при инициализации пустого `postgres-data`; ограничение отмечено в Implementation Notes спеки и общее для всех сервисов (pre-existing infra-паттерн).
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-1-импорт-справочника-из-excel-с-маппером-колонок.md`
+  summary: Автоподстановка маппера может привязать колонку «цена с НДС» к `rate_amount`, хотя справочник должен хранить цену без НДС.
+  evidence: `FIELD_ALIASES["rate_amount"]` содержит подстроки «цена»/«стоимость»; при наличии в файле и «цена», и «цена с НДС» выбор зависит от порядка колонок. Требуется образец реального файла или правило приоритета колонок НДС; если подтвердится — severity medium.
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-1-импорт-справочника-из-excel-с-маппером-колонок.md`
+  summary: Тесты rate-catalog выполняются на sqlite, CI не поднимает Postgres, поэтому `Numeric(18,4)`, `DataError` и уникальные констрейнты не проверяются автоматически.
+  evidence: `tests/test_import.py` мигрирует sqlite-БД; прогон Alembic на Postgres 18.6 и `alembic check` сделаны вручную (Verification). Закрывается добавлением postgres service-контейнера в CI — уже числится открытым пунктом ретро Epic 2.
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-1-импорт-справочника-из-excel-с-маппером-колонок.md`
+  summary: Нет структурного JSON-логирования с `request_id` и именем сервиса, хотя этого требует архитектура.
+  evidence: В rate-catalog, как и в остальных сервисах, отсутствует logging-конфигурация; требование общее для системы, а не следствие Story 3.1.
