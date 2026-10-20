@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-20-2026 18:40'
+last_updated: '10-20-2026 19:05'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -25,9 +25,9 @@ development_status:
   epic-3-retrospective: optional
 
   epic-4: in-progress
-  4-1-загрузка-цифрового-pdf-в-minio-с-валидацией: review
-  4-2-конвертация-pdf-текст-без-ocr: review
-  epic-4-retrospective: optional
+  4-1-загрузка-цифрового-pdf-в-minio-с-валидацией: done
+  4-2-конвертация-pdf-текст-без-ocr: done
+  epic-4-retrospective: done
 
   epic-5: backlog
   5-1-llm-извлечение-спецификации-local-first: backlog
@@ -87,3 +87,86 @@ action_items:
     owner: "Shved"
     status: open
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-7-ввести-per-route-timeout-30с-для-v1-file"
+    epic: 4
+    action: "Ввести per-route timeout >=30с для /v1/files или асинхронный extract
+      (202 + статус); покрыть E2E PDF 5 МиБ / 500 страниц"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-8-получить-2-3-реальных-pdf-гранд-авк-с-эт"
+    epic: 4
+    action: "Получить 2-3 реальных PDF ГРАНД/АВК с эталонным текстом и измерять фактическое
+      покрытие >=95%; иначе согласовать пересмотр AC"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-9-добавить-postgres-и-minio-сервисы-в-ci-p"
+    epic: 4
+    action: "Добавить Postgres и MinIO сервисы в CI pdf-extract и compose-smoke upload
+      -> extract -> get; закрыть epic-2-retro-item-5"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-10-сделать-один-engine-sessionmaker-и-один"
+    epic: 4
+    action: "Сделать один engine/sessionmaker и один MinIO-клиент на приложение; закрыть
+      epic-2-retro-item-6"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-11-проверять-size-hash-объекта-при-extract"
+    epic: 4
+    action: "Проверять size/hash объекта при extract или зафиксировать модель tamper;
+      убрать тест, принимающий подменённый объект"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-12-унифицировать-ошибки-storage-put-и-get-5"
+    epic: 4
+    action: "Унифицировать ошибки storage: put и get -> 502/503 problem+json; покрыть
+      тестом"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-13-вынести-fakestorage-миграции-pdf-фикстур"
+    epic: 4
+    action: "Вынести FakeStorage, миграции, PDF-фикстуры и HTTP-хелперы в tests/conftest.py;
+      один production-composition тест"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-14-определить-переход-story-review-done-пос"
+    epic: 4
+    action: "Определить переход story review -> done после approve (walkthrough обновляет
+      sprint-status или step-05 ставит done)"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-15-ввести-max_pages-max_chars-для-extract-и"
+    epic: 4
+    action: "Ввести MAX_PAGES/MAX_CHARS для extract или подтвердить отсутствие лимита;
+      связать с отложенным пунктом 4.1"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-16-принимать-pdf-в-первых-1024-байтах-и-ост"
+    epic: 4
+    action: "Принимать %PDF- в первых 1024 байтах и оставлять финальную проверку парсеру"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-17-закрывать-pdfpage-при-исключении-get_tex"
+    epic: 4
+    action: "Закрывать PdfPage при исключении get_textpage(); добавить регрессионный
+      тест"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-4-retro-item-18-добавить-контрактный-тест-upload-extract"
+    epic: 4
+    action: "Добавить контрактный тест upload -> extract на PDF, который проходит
+      pypdfium2, но падает или пуст в pdfplumber"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
