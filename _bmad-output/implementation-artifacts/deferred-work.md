@@ -97,6 +97,8 @@
 - source_spec: none
   summary: Story 5.3 «API ручной проверки маппинга» отложена до появления фундамента Epic 6 (сметы, версии и позиции, Story 6.1), поверх которого строится review API.
   evidence: `estimate` — каркас только с `/health`, моделей `estimate`/`estimate_version`/`estimate_item`, миграций и API нет; Story 5.2 stateless и предложения не сохраняет. Решение владельца (2026-10-20): вариант C — не заводить review-хранилище в mapping-service и не создавать частичный estimate в 5.3. При возврате: позиции, статус и выбранная расценка/ЕИ принадлежат estimate (AD-013); review API подтверждения/исправления и выделение `confidence < 0.70` строятся поверх `estimate_item` после 6.1; снапшоты и расчёт — Epic 6 (6.3).
+  status: resolved
+  resolved_by: `_bmad-output/implementation-artifacts/spec-5-3-api-ручной-проверки-маппинга.md` (2026-10-20)
 
 ## Deferred from: code review of spec-6-1-создание-сметы-и-версий-ровно-одна-активная.md (2026-10-20)
 
