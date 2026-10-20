@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-20-2026 19:05'
+last_updated: '10-20-2026 19:37'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -29,8 +29,8 @@ development_status:
   4-2-конвертация-pdf-текст-без-ocr: done
   epic-4-retrospective: done
 
-  epic-5: backlog
-  5-1-llm-извлечение-спецификации-local-first: backlog
+  epic-5: in-progress
+  5-1-llm-извлечение-спецификации-local-first: review
   5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence: backlog
   5-3-api-ручной-проверки-маппинга: backlog
   epic-5-retrospective: optional

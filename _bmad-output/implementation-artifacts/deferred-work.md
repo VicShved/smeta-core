@@ -61,3 +61,21 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-2-конвертация-pdf-текст-без-ocr.md`
   summary: Обновление `extracted_at` при повторном extract не проверяется тестом: содержимое обновляется, но свежесть артефакта не закреплена.
   evidence: AC требует обновления содержимого и отсутствия дубля; точная проверка времени требует управления часами или отдельного источника времени, которого в сервисе нет.
+
+## Deferred from: code review of spec-5-1-llm-извлечение-спецификации-local-first.md (2026-10-20)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-1-llm-извлечение-спецификации-local-first.md`
+  summary: Бюджет контекста 3000 символов чанка + 2048 токенов вывода и целая строка >3000 могут превысить n_ctx=4096; нужна проверка на реальном токенайзере/модели.
+  evidence: Без GGUF-модели точный token-count не измерить; решение «не разрывать строку» зафиксировано в спеке.
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-1-llm-извлечение-спецификации-local-first.md`
+  summary: `LlamaClient.chat` теряет `finish_reason`; обрезка по `max_tokens` неотличима от невалидного JSON и ведёт к 502 без диагностики.
+  evidence: Для исправления нужен новый API клиента и прогон на реальной модели; сейчас fake-LLM не воспроизводит `length`.
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-1-llm-извлечение-спецификации-local-first.md`
+  summary: Чанкер не переносит заголовок раздела и теряет пустые строки/маркеры страниц; `section` в поздних чанках может быть пустым или неверным.
+  evidence: Качество извлечения раздела требует реальных ГРАНД/АВК PDF; без корпуса эффект не измерить.
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-1-llm-извлечение-спецификации-local-first.md`
+  summary: У промпта нет версии и few-shot примеров для типовых случаев смет; результаты невоспроизводимы между изменениями промпта.
+  evidence: Версионирование/примеры имеют смысл после появления модели и эталонного корпуса для сравнения качества.
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-1-llm-извлечение-спецификации-local-first.md`
+  summary: Сериализация вызовов модели под общим lock не покрыта конкурентным тестом.
+  evidence: Нужна event/timing-инфраструктура; lock реализован, но регрессию на перекрытие вызовов suite не проверяет.
