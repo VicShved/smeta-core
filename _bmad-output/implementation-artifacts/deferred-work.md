@@ -55,3 +55,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-1-загрузка-цифрового-pdf-в-minio-с-валидацией.md`
   summary: api-gateway буферизует тело запроса целиком и не имеет edge-лимита на размер загрузки.
   evidence: `content=await request.body()` — pre-existing дизайн прокси для всех маршрутов (rate-catalog тоже принимает файлы); ограничение на edge меняет общий контракт gateway.
+
+## Deferred from: code review of spec-4-2-конвертация-pdf-текст-без-ocr.md (2026-10-20)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-2-конвертация-pdf-текст-без-ocr.md`
+  summary: Обновление `extracted_at` при повторном extract не проверяется тестом: содержимое обновляется, но свежесть артефакта не закреплена.
+  evidence: AC требует обновления содержимого и отсутствия дубля; точная проверка времени требует управления часами или отдельного источника времени, которого в сервисе нет.
