@@ -79,3 +79,15 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-5-1-llm-извлечение-спецификации-local-first.md`
   summary: Сериализация вызовов модели под общим lock не покрыта конкурентным тестом.
   evidence: Нужна event/timing-инфраструктура; lock реализован, но регрессию на перекрытие вызовов suite не проверяет.
+
+## Deferred from: code review of spec-5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence.md (2026-10-20)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence.md`
+  summary: Hard-filter по совпавшей ЕИ может выбрать нерелевантную расценку вместо exact-name кандидата с другой ЕИ; нужна калибровка на реальном справочнике.
+  evidence: Решение «совпавшая ЕИ, иначе все» зафиксировано в frozen-спеке; без реальных данных нельзя оценить, какой вариант даёт лучшее покрытие.
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence.md`
+  summary: Exact-name при несовпавшей ЕИ получает confidence 0.9025 и needs_review=false; формула/штраф требуют калибровки.
+  evidence: Формула `0.85*name + 0.15*unit` зафиксирована в frozen-спеке; реальные метрики и порог отложены.
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence.md`
+  summary: Нет пагинации/кэша активных расценок: mapping загружает весь справочник на каждый запрос.
+  evidence: Объём реального справочника в MVP неизвестен; кэш по версии/пагинация нужны после появления данных.
