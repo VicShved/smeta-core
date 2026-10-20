@@ -40,3 +40,18 @@
 - source_spec: none
   summary: Story 3.3 «Snapshot расценок в позициях смет» отложена до появления фундамента Epic 6 (estimate-модели/версии/позиции и детерминированный расчёт).
   evidence: `estimate` и `calc-service` — каркасы только с `/health`: нет моделей `estimate`/`estimate_version`/`estimate_item`, миграций, БД `estimate` в compose и API; у rate-catalog нет чтения строк версии. AC «позиции сохраняют snapshot при расчёте» и «повторный расчёт» проверить нечем. Решение владельца (2026-10-20): отложить до Epic 6; при возврате учесть, что позиции принадлежат estimate, а rate-catalog должен отдавать неизменяемые расценки версии по API (AD-014 запрещает прямое чтение чужой БД).
+
+## Deferred from: code review of spec-4-1-загрузка-цифрового-pdf-в-minio-с-валидацией.md (2026-10-20)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-1-загрузка-цифрового-pdf-в-minio-с-валидацией.md`
+  summary: Нет лимита числа страниц/времени разбора PDF: крафтовый 5-МиБ документ может надолго занять CPU.
+  evidence: Теоретический CPU-DoS не воспроизведён; нужен бенчмарк PDF с большим числом страниц, чтобы выбрать безопасный лимит, не отсекая легитимные сметы.
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-1-загрузка-цифрового-pdf-в-minio-с-валидацией.md`
+  summary: `initdb` создаёт `pdf_extract` только на свежем volume; существующий dev-volume требует ручного `CREATE DATABASE`.
+  evidence: `deploy/initdb/01-create-databases.sql` исполняется только при инициализации пустого `postgres-data`; ограничение общее для всех сервисов и уже зафиксировано для `rate_catalog`, в README добавлена команда создания базы.
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-1-загрузка-цифрового-pdf-в-minio-с-валидацией.md`
+  summary: Dockerfile ставит зависимости через `pip install .`, игнорируя закоммиченный `uv.lock`.
+  evidence: Тот же паттерн у rate-catalog; воспроизводимость сборки по lock-файлу — общая infra-задача, не следствие Story 4.1.
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-1-загрузка-цифрового-pdf-в-minio-с-валидацией.md`
+  summary: api-gateway буферизует тело запроса целиком и не имеет edge-лимита на размер загрузки.
+  evidence: `content=await request.body()` — pre-existing дизайн прокси для всех маршрутов (rate-catalog тоже принимает файлы); ограничение на edge меняет общий контракт gateway.
