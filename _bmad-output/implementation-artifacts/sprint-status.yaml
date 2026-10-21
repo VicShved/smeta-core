@@ -20,7 +20,7 @@ development_status:
 
   epic-3: in-progress
   3-1-импорт-справочника-из-excel-с-маппером-колонок: done
-  3-2-версионирование-справочника: review
+  3-2-версионирование-справочника: done
   3-3-snapshot-расценок-в-позициях-смет: done
   epic-3-retrospective: optional
 
