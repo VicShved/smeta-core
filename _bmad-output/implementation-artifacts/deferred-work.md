@@ -152,3 +152,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
   summary: nginx-прокси жёстко привязан к docker-сети (`resolver 127.0.0.11`, `api-gateway:8000`) — переопределить upstream нельзя.
   evidence: `ui/nginx.conf`; в compose работает, но для внешнего стенда (Vite dev-server, иной хост) потребуется параметризация через envsubst.
+
+## Deferred from: code review of spec-7-1b-ui-загрузка-pdf-и-статусы-обработки.md (2026-10-21)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-1b-ui-загрузка-pdf-и-статусы-обработки.md`
+  summary: Сбор сводного статуса удерживает сессию БД во время HTTP-вызова в pdf-extract — при медленном upstream пул соединений расходуется.
+  evidence: `estimate/app/application/processing_status.py` вызывает `pdf_extract.get_file` внутри `with self._session_factory()`; на текущем объёме (десятки смет) это незаметно, но при росте нагрузки нужен вынос вызова за пределы транзакции либо отдельная сессия.
