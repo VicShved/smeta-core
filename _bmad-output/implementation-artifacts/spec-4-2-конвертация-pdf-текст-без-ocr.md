@@ -43,6 +43,8 @@ context:
 
 </frozen-after-approval>
 
+- **CID→Unicode:** если pdfminer отдаёт `(cid:N)` (нет `ToUnicode`), маппинг строится по встроенному шрифту: для Type0 — `CIDToGIDMap` + обратный `cmap`/glyph names, для simple font — `/Differences` + AGL; остаток закрывает внешняя JSON-карта по SHA-256 шрифта или имени. Замена выполняется в `page.chars` до `chars_to_textmap`, layout не меняется; неизвестные CID остаются как есть и попадают в warning.
+
 ## Code Map
 
 - `pdf-extract/app/domain/text.py` -- `ExtractedText`, `TextArtifact` (с контентом для API), `TextArtifactMetadata` (без контента), `text_storage_key` и `TextArtifact.create`.
@@ -101,6 +103,8 @@ context:
 - **Тесты:** sqlite + реальные Alembic-миграции; настоящие pdfplumber/pypdfium2; reportlab-фикстуры (ASCII); fake-storage с `get`; покрыты структура таблиц/страниц, идемпотентность, coverage < 0.95, 401/404/422/502 и production composition. Gateway-тесты подтверждают проксирование вложенных путей без изменения кода gateway.
 
 ## Spec Change Log
+
+- 2026-10-21: добавлено трёхслойное восстановление CID→Unicode: `ToUnicode` → встроенный шрифт (`CIDToGIDMap` + `cmap`/glyph names) → внешняя карта по fingerprint (`PDF_EXTRACT_CID_MAP_PATH`); неразрешённые CID остаются `(cid:N)` и логируются.
 
 - 2026-10-21: контент перенесён из `file_text.content` в S3 (`{company_id}/{file_id}/source.txt`), в БД остались метаданные; миграция `0003` удаляет колонку, entrypoint запускает `app.tools.migrate_storage_layout`.
 
