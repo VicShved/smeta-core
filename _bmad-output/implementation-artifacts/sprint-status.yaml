@@ -44,7 +44,7 @@ development_status:
   epic-7: in-progress
   7-1a-ui-вход-и-дерево-смет: done
   7-1b-ui-загрузка-pdf-и-статусы-обработки: done
-  7-2-просмотр-спецификации-маппинга-и-стоимости: backlog
+  7-2-просмотр-спецификации-маппинга-и-стоимости: done
   epic-7-retrospective: optional
 action_items:
   - id: "retro-epic1-1"

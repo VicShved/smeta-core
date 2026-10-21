@@ -158,3 +158,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-1b-ui-загрузка-pdf-и-статусы-обработки.md`
   summary: Сбор сводного статуса удерживает сессию БД во время HTTP-вызова в pdf-extract — при медленном upstream пул соединений расходуется.
   evidence: `estimate/app/application/processing_status.py` вызывает `pdf_extract.get_file` внутри `with self._session_factory()`; на текущем объёме (десятки смет) это незаметно, но при росте нагрузки нужен вынос вызова за пределы транзакции либо отдельная сессия.
+
+## Deferred from: code review of spec-7-2-ui-просмотр-спецификации-маппинга-и-стоимости.md (2026-10-21)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-2-ui-просмотр-спецификации-маппинга-и-стоимости.md`
+  summary: Обогащение позиций названиями расценок держит сессию БД во время HTTP-вызова в rate-catalog — соединение удерживается до таймаута клиента.
+  evidence: `estimate/app/application/list_items.py` вызывает `rate_catalog.find_rates` внутри `with self._session_factory()`; тот же паттерн отмечен для pdf-extract в Story 7.1b. На текущих объёмах (до 500 позиций на страницу) незаметно, но при росте нагрузки нужен вынос вызова за пределы транзакции либо отдельная сессия.
