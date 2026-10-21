@@ -143,7 +143,7 @@ flowchart TD
 | MinIO | RELEASE.2025-10-15T17-29-55Z |
 | llama-cpp-python | >=0.3.14 |
 | Vue | 3.5.44 |
-| Vite | 8.3.4 |
+| Vite | 5.4 (ui/package.json) |
 | Node.js | 24 LTS |
 | pytest | >=8 |
 | ruff | >=0.6 |

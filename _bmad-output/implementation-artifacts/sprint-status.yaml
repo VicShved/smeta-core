@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 03:05'
+last_updated: '10-21-2026 05:00'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -41,8 +41,9 @@ development_status:
   6-3-детерминированный-расчёт-стоимости: done
   epic-6-retrospective: optional
 
-  epic-7: backlog
-  7-1-навигация-по-иерархии-и-загрузка-pdf: backlog
+  epic-7: in-progress
+  7-1a-ui-вход-и-дерево-смет: review
+  7-1b-ui-загрузка-pdf-и-статусы-обработки: backlog
   7-2-просмотр-спецификации-маппинга-и-стоимости: backlog
   epic-7-retrospective: optional
 action_items:

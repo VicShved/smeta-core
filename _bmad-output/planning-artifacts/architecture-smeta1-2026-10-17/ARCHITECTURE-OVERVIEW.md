@@ -30,7 +30,7 @@ C4Context
 C4Container
   title Контейнеры smeta1
   Person(user, "Сметчик")
-  Container(ui, "ui", "Vue 3.5 + Vite 8", "Веб-интерфейс MVP")
+  Container(ui, "ui", "Vue 3.5 + Vite 5", "Веб-интерфейс MVP")
   Container(gw, "api-gateway", "FastAPI", "Единственная точка входа; проверка JWT; identity-заголовки")
   Container(auth, "auth-users", "FastAPI", "Выпуск JWT; users и credentials")
   Container(org, "company-org", "FastAPI", "Компании, договоры, этапы")

@@ -128,3 +128,27 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-6-3-детерминированный-расчёт-стоимости.md`
   summary: Нет переноса подтверждённых позиций в новую версию сметы: импорт 5.3 создаёт позиции в статусе `proposed`, поэтому подтверждения и скорректированная ЕИ теряются.
   evidence: `estimate/app/application/import_items.py` всегда создаёт `status=proposed`; новые цены по README требуют новой версии и повторного подтверждения всех позиций. Нужна операция копирования позиций с сохранением статусов.
+
+## Deferred from: implementation of spec-7-1a-ui-вход-и-дерево-смет.md (2026-10-21)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
+  summary: `GET /v1/estimates?stage_id=` делает лишний HTTP-вызов в company-org на каждый запрос (подтверждение скоупа этапа по дереву договоров) — кэша нет.
+  evidence: `estimate/app/application/list_estimates.py` вызывает `CompanyOrgPort.list_company_stages` → `GET /v1/contracts/tree`; вызов нужен, чтобы отличать «пустой этап» (`200`, `items: []`) от «чужой/неизвестный этап» (`404`) — без него скоуп этапа неотличим от пустого. На объёмах MVP (десятки договоров) приемлемо; при росте иерархии нужен кэш этапов компании или отдельный endpoint этапов.
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
+  summary: UI покрыт только vitest/jsdom: браузерного e2e-прогона (Playwright/Cypress) в репозитории нет, реальный браузер и SPA-fallback проверены вручную (compose-стенд, curl).
+  evidence: `ui/tests/*` — unit/component-тесты на jsdom; `ui/package.json` не содержит e2e-фреймворка. Для Epic 7.1b (загрузка PDF) и 7.2 (таблицы позиций) понадобится e2e-контур либо ручная проверка на стенде.
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
+  summary: Имя компании при регистрации UI выводится из локальной части email: `auth-users` требует `company_name` в теле, а frozen-спека оставляет в форме только email/пароль.
+  evidence: `ui/src/views/RegisterView.ts` (`default_company_name`), контракт `POST /v1/auth/register` — `company_name` обязателен. Сейчас пользователь видит предполагаемое имя компании в форме и не может его изменить; отдельный выбор компании в скоупе 7.1a запрещён («новые роли/компании» в Never).
+
+## Deferred from: code review of spec-7-1a-ui-вход-и-дерево-смет.md (2026-10-21)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
+  summary: В UI не настроен CSP — при токене в `localStorage` это оставляет основной вектор кражи токена.
+  evidence: `ui/nginx.conf` добавляет `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, но без `Content-Security-Policy`: у SPA есть встроенные стили и динамические импорты, слепой CSP сломал бы сборку. Нужен отдельный проход с проверкой сборки под строгим CSP.
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
+  summary: `GET /v1/estimates?stage_id=` считает `total` и `items` двумя запросами — при записи между ними счётчик и список могут разойтись.
+  evidence: `estimate/app/infrastructure/repository.py` — `count_by_stage` и `list_by_stage`; на объёмах MVP (десятки смет на этап) расхождение маловероятно, но пагинация показывается пользователю. Исправляется одним запросом с `COUNT(*) OVER ()`.
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
+  summary: nginx-прокси жёстко привязан к docker-сети (`resolver 127.0.0.11`, `api-gateway:8000`) — переопределить upstream нельзя.
+  evidence: `ui/nginx.conf`; в compose работает, но для внешнего стенда (Vite dev-server, иной хост) потребуется параметризация через envsubst.
