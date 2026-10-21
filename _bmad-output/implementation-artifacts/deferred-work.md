@@ -30,6 +30,8 @@
   evidence: `FIELD_ALIASES["rate_amount"]` содержит подстроки «цена»/«стоимость»; при наличии в файле и «цена», и «цена с НДС» выбор зависит от порядка колонок. Требуется образец реального файла или правило приоритета колонок НДС; если подтвердится — severity medium.
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-1-импорт-справочника-из-excel-с-маппером-колонок.md`
   summary: Тесты rate-catalog выполняются на sqlite, CI не поднимает Postgres, поэтому `Numeric(18,4)`, `DataError` и уникальные констрейнты не проверяются автоматически.
+  status: resolved
+  resolved_by: `rate-catalog/tests/test_real_services.py` и CI-job `integration` (Postgres+MinIO), 2026-10-21.
   evidence: `tests/test_import.py` мигрирует sqlite-БД; прогон Alembic на Postgres 18.6 и `alembic check` сделаны вручную (Verification). Закрывается добавлением postgres service-контейнера в CI — уже числится открытым пунктом ретро Epic 2.
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-1-импорт-справочника-из-excel-с-маппером-колонок.md`
   summary: Нет структурного JSON-логирования с `request_id` и именем сервиса, хотя этого требует архитектура.
@@ -47,6 +49,8 @@
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-1-загрузка-цифрового-pdf-в-minio-с-валидацией.md`
   summary: Нет лимита числа страниц/времени разбора PDF: крафтовый 5-МиБ документ может надолго занять CPU.
+  status: resolved
+  resolved_by: Story 7.5: `PDF_EXTRACT_MAX_PAGES=1000`, `PDF_EXTRACT_MAX_CHARS=2000000`, 422 `pdf-too-large`.
   evidence: Теоретический CPU-DoS не воспроизведён; нужен бенчмарк PDF с большим числом страниц, чтобы выбрать безопасный лимит, не отсекая легитимные сметы.
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-1-загрузка-цифрового-pdf-в-minio-с-валидацией.md`
   summary: `initdb` создаёт `pdf_extract` только на свежем volume; существующий dev-volume требует ручного `CREATE DATABASE`.
@@ -62,6 +66,8 @@
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-2-конвертация-pdf-текст-без-ocr.md`
   summary: Обновление `extracted_at` при повторном extract не проверяется тестом: содержимое обновляется, но свежесть артефакта не закреплена.
+  status: resolved
+  resolved_by: Story 7.5: `test_repeated_extract_updates_single_artifact`.
   evidence: AC требует обновления содержимого и отсутствия дубля; точная проверка времени требует управления часами или отдельного источника времени, которого в сервисе нет.
 
 ## Deferred from: code review of spec-5-1-llm-извлечение-спецификации-local-first.md (2026-10-20)
@@ -106,6 +112,8 @@
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-6-1-создание-сметы-и-версий-ровно-одна-активная.md`
   summary: Postgres-ветка частичного уникального индекса `uq_estimate_version_one_active` (`postgresql_where`) не исполняется ни одним тестом; SQLite-only прогон не ловит её поломку.
+  status: resolved
+  resolved_by: `estimate/tests/test_real_services.py` + CI-job `integration`, 2026-10-21.
   evidence: Все тесты миграций используют `sqlite:///`; в CI estimate/deploy нет Postgres-сервиса. Удаление `postgresql_where` оставляет suite зелёным, а на production-Postgres индекс становится обычным UNIQUE(estimate_id). Закрывается добавлением Postgres-service в CI — общая задача, уже отмеченная в ретро Epic 2/4.
 - source_spec: `_bmad-output/implementation-artifacts/spec-6-1-создание-сметы-и-версий-ровно-одна-активная.md`
   summary: Entrypoint контейнера estimate (`alembic upgrade head` + uvicorn) и COPY миграций не проверяются автоматически; сломанный CMD проявится только при деплое.
@@ -136,6 +144,8 @@
   evidence: `estimate/app/application/list_estimates.py` вызывает `CompanyOrgPort.list_company_stages` → `GET /v1/contracts/tree`; вызов нужен, чтобы отличать «пустой этап» (`200`, `items: []`) от «чужой/неизвестный этап» (`404`) — без него скоуп этапа неотличим от пустого. На объёмах MVP (десятки договоров) приемлемо; при росте иерархии нужен кэш этапов компании или отдельный endpoint этапов.
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
   summary: UI покрыт только vitest/jsdom: браузерного e2e-прогона (Playwright/Cypress) в репозитории нет, реальный браузер и SPA-fallback проверены вручную (compose-стенд, curl).
+  status: resolved
+  resolved_by: `deploy/e2e` (pytest + Playwright), Story 7.8, 2026-10-21.
   evidence: `ui/tests/*` — unit/component-тесты на jsdom; `ui/package.json` не содержит e2e-фреймворка. Для Epic 7.1b (загрузка PDF) и 7.2 (таблицы позиций) понадобится e2e-контур либо ручная проверка на стенде.
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
   summary: Имя компании при регистрации UI выводится из локальной части email: `auth-users` требует `company_name` в теле, а frozen-спека оставляет в форме только email/пароль.
