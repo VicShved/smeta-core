@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 16:26'
+last_updated: '10-21-2026 16:47'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -257,7 +257,7 @@ action_items:
     action: "Отдельная история: браузерный e2e-прогон ключевого пути UI (вход → дерево
       → загрузка → панель стадий → экран сметы) — Epic 7 покрыт только jsdom-тестами"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
   - id: "epic-7-retro-item-13-тест-закрытия-страницы-pdf"
     epic: 7
