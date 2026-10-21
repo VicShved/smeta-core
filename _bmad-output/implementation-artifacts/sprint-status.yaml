@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 17:22'
+last_updated: '10-21-2026 17:23'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -33,13 +33,13 @@ development_status:
   5-1-llm-извлечение-спецификации-local-first: done
   5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence: done
   5-3-api-ручной-проверки-маппинга: done
-  epic-5-retrospective: optional
+  epic-5-retrospective: done
 
   epic-6: done
   6-1-создание-сметы-и-версий-ровно-одна-активная: done
   6-2-готовность-к-diff-между-версиями: done
   6-3-детерминированный-расчёт-стоимости: done
-  epic-6-retrospective: optional
+  epic-6-retrospective: done
 
   epic-7: done
   7-1a-ui-вход-и-дерево-смет: done
@@ -294,3 +294,52 @@ action_items:
     owner: "dev"
     status: open
     ref: "_bmad-output/implementation-artifacts/epic-3-retro-10-21-2026.md"
+  - id: "epic-5-retro-item-36-сквозной-прогон-pdf-текст-llm-маппинг-на"
+    epic: 5
+    action: "Сквозной прогон PDF → текст → LLM → маппинг на реальных PDF и модели,
+      замер покрытия и доли низкоуверенных"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-10-21-2026.md"
+  - id: "epic-5-retro-item-37-golden-набор-позиций-и-расценок-для-мапп"
+    epic: 5
+    action: "Golden-набор позиций и расценок для маппинга с проверкой доли confidence
+      < 0.70"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-10-21-2026.md"
+  - id: "epic-5-retro-item-38-спека-5-2-зафиксировать-недостижимость-m"
+    epic: 5
+    action: "Спека 5.2: зафиксировать недостижимость match=null при непустом каталоге
+      и уточнить контракт"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-10-21-2026.md"
+  - id: "epic-5-retro-item-39-импорт-позиций-устранить-гонку-бд-ограни"
+    epic: 5
+    action: "Импорт позиций: устранить гонку БД-ограничением или зафиксировать принятый
+      риск"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-10-21-2026.md"
+  - id: "epic-6-retro-item-40-атомарная-активация-и-нумерация-версий-c"
+    epic: 6
+    action: "Атомарная активация и нумерация версий: CAS или retry на IntegrityError,
+      тест конкурентного сценария"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-6-retro-10-21-2026.md"
+  - id: "epic-6-retro-item-41-ci-estimate-на-реальном-postgres-сервис"
+    epic: 6
+    action: "CI estimate на реальном Postgres: сервис-контейнер, миграции и прогон
+      тестов"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-6-retro-10-21-2026.md"
+  - id: "epic-6-retro-item-42-идемпотентность-создания-сметы-и-версии"
+    epic: 6
+    action: "Идемпотентность создания сметы и версии: Idempotency-Key либо явная запись
+      ограничения MVP"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-6-retro-10-21-2026.md"
