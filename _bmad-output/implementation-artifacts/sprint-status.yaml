@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 16:18'
+last_updated: '10-21-2026 16:24'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -86,7 +86,7 @@ action_items:
     epic: 2
     action: "Кэшировать make_session_factory (@lru_cache/единый sessionmaker в wiring.py)"
     owner: "Shved"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-10-20-2026.md"
   - id: "epic-4-retro-item-7-ввести-per-route-timeout-30с-для-v1-file"
     epic: 4
@@ -114,7 +114,7 @@ action_items:
     action: "Сделать один engine/sessionmaker и один MinIO-клиент на приложение; закрыть
       epic-2-retro-item-6"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-11-проверять-size-hash-объекта-при-extract"
     epic: 4
