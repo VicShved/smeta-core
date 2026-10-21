@@ -104,7 +104,7 @@ context:
 
 ## Spec Change Log
 
-- 2026-10-21: добавлено восстановление CID→Unicode: `ToUnicode` → встроенный шрифт (`CIDToGIDMap` + `cmap`/glyph names) → внешняя карта по fingerprint (`PDF_EXTRACT_CID_MAP_PATH`) → fallback на страницу из pypdfium2 (`PDF_EXTRACT_PDFIUM_FALLBACK`, по умолчанию включён) с проверкой правдоподобия; неразрешённые CID остаются `(cid:N)` и логируются.
+- 2026-10-21: добавлено восстановление CID→Unicode: `ToUnicode` → встроенный шрифт (`CIDToGIDMap` + `cmap`/glyph names) → внешняя карта по fingerprint (`PDF_EXTRACT_CID_MAP_PATH`) → fallback на страницу из pypdfium2 (`PDF_EXTRACT_PDFIUM_FALLBACK`, по умолчанию выключен) с проверкой правдоподобия и алфавита; неразрешённые CID остаются `(cid:N)` и логируются.
 
 - 2026-10-21: контент перенесён из `file_text.content` в S3 (`{company_id}/{file_id}/source.txt`), в БД остались метаданные; миграция `0003` удаляет колонку, entrypoint запускает `app.tools.migrate_storage_layout`.
 
