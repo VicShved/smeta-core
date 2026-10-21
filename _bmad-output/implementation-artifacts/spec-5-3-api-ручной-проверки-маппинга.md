@@ -137,3 +137,5 @@ context:
 - `cd estimate && .venv/bin/ruff check . && .venv/bin/pytest -q` → `All checks passed!`, `91 passed`
 - `cd deploy && docker compose config -q` → exit 0
 - `cd estimate && docker build -q -t estimate:ci .` → не завершено: команда прервана пользователем; образ не подтверждён.
+
+**Walkthrough (2026-10-21):** approved — импорт в активную версию, confirm/correct и деградация при недоступном справочнике приняты; статус истории `done`.
