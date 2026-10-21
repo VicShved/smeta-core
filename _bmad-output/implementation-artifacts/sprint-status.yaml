@@ -36,7 +36,7 @@ development_status:
   epic-5-retrospective: optional
 
   epic-6: in-progress
-  6-1-создание-сметы-и-версий-ровно-одна-активная: review
+  6-1-создание-сметы-и-версий-ровно-одна-активная: done
   6-2-готовность-к-diff-между-версиями: done
   6-3-детерминированный-расчёт-стоимости: done
   epic-6-retrospective: optional
