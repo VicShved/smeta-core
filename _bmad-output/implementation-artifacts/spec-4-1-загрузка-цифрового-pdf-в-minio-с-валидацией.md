@@ -21,18 +21,18 @@ context:
 
 ## Boundaries & Constraints
 
-**Always:** identity только из `X-Company-Id` (401 без него); `company_id` хранится в `file`, записи изолированы компанией (AD-013); лимит — 5 МиБ (`5 * 1024 * 1024`), ровно 5 МиБ допустимо; текстовый слой проверяется реальным парсером PDF, а не по расширению; ошибки — `application/problem+json`; слоистость AD-011; отдельная БД `pdf_extract` и свои миграции Alembic (AD-014); наружу экспонируется только gateway.
+**Always:** identity только из `X-Company-Id` (401 без него); `company_id` хранится в `file`, записи изолированы компанией (AD-013); лимит — 50 МиБ (`50 * 1024 * 1024`), ровно 50 МиБ допустимо; текстовый слой проверяется реальным парсером PDF, а не по расширению; ошибки — `application/problem+json`; слоистость AD-011; отдельная БД `pdf_extract` и свои миграции Alembic (AD-014); наружу экспонируется только gateway.
 
 **Never:** OCR и конвертация PDF → текст (Story 4.2); привязка файла к смете/этапу; скачивание, список и удаление файлов; UI; правки контракта импорта rate-catalog; чтение чужих БД; хранение файла в БД.
 
-**Решения (2026-10-20):** `POST /v1/files` → `201` с `FileResponse` (`id`, `mime_type`, `size`, `meta`, `created_at`), `storage_key` наружу не отдаётся; bucket `pdf-extract-files` (env `PDF_EXTRACT_BUCKET`), ключ `{company_id}/{file_id}.pdf`; `meta = {"filename", "pages"}`; `413` при размере > 5 МиБ; `415` если содержимое не PDF (объявленный Content-Type не доверяем); `422` для битого/зашифрованного PDF, PDF без текстового слоя и имени файла длиннее 255 символов. Текстовый слой — хотя бы один непробельный символ во всех страницах. Файл проверяется до записи; объект кладётся в MinIO до вставки строки, orphan-объект при сбое commit допустим (как в 3.1). Дедупликации нет: каждая загрузка — новый `file`. Bucket создаётся лениво при первой записи (как в rate-catalog).
+**Решения (2026-10-20):** `POST /v1/files` → `201` с `FileResponse` (`id`, `mime_type`, `size`, `meta`, `created_at`), `storage_key` наружу не отдаётся; bucket `pdf-extract-files` (env `PDF_EXTRACT_BUCKET`), ключ `{company_id}/{file_id}.pdf`; `meta = {"filename", "pages"}`; `413` при размере > 50 МиБ; `415` если содержимое не PDF (объявленный Content-Type не доверяем); `422` для битого/зашифрованного PDF, PDF без текстового слоя и имени файла длиннее 255 символов. Текстовый слой — хотя бы один непробельный символ во всех страницах. Файл проверяется до записи; объект кладётся в MinIO до вставки строки, orphan-объект при сбое commit допустим (как в 3.1). Дедупликации нет: каждая загрузка — новый `file`. Bucket создаётся лениво при первой записи (как в rate-catalog).
 
 ## I/O & Edge-Case Matrix
 
 | Scenario | Input / State | Expected Output / Behavior | Error Handling |
 |----------|--------------|---------------------------|----------------|
-| Валидный цифровой PDF | PDF с текстом, ≤ 5 МиБ, `X-Company-Id` задан | `201`, запись `file` в БД, объект в MinIO | — |
-| Файл больше лимита | > 5 МиБ | ничего не сохранено | `413` problem+json |
+| Валидный цифровой PDF | PDF с текстом, ≤ 50 МиБ, `X-Company-Id` задан | `201`, запись `file` в БД, объект в MinIO | — |
+| Файл больше лимита | > 50 МиБ | ничего не сохранено | `413` problem+json |
 | Не PDF | содержимое без `%PDF-` (в т.ч. с именем `*.pdf`) | ничего не сохранено | `415` problem+json |
 | PDF без текстового слоя | пустая или картинка без текста | ничего не сохранено | `422` `pdf-without-text-layer` |
 | Битый/зашифрованный PDF | `%PDF-` + мусор либо пароль | ничего не сохранено | `422` problem+json |
@@ -86,8 +86,8 @@ context:
 - [x] `pdf-extract` + `api-gateway` -- ruff/pytest, `deploy` -- `docker compose config -q` -- верификация.
 
 **Acceptance Criteria:**
-- Given авторизованный пользователь с `X-Company-Id`, when загружает цифровой PDF ≤ 5 МиБ, then `201`, в БД есть `file` с `storage_key`/`mime_type`/`size`/`meta`, объект доступен в MinIO.
-- Given PDF > 5 МиБ, when загрузка, then `413` problem+json и ни записи, ни объекта.
+- Given авторизованный пользователь с `X-Company-Id`, when загружает цифровой PDF ≤ 50 МиБ, then `201`, в БД есть `file` с `storage_key`/`mime_type`/`size`/`meta`, объект доступен в MinIO.
+- Given PDF > 50 МиБ, when загрузка, then `413` problem+json и ни записи, ни объекта.
 - Given PDF без текстового слоя, when загрузка, then `422` с типом `pdf-without-text-layer` и без сохранения.
 - Given файл не PDF, when загрузка, then `415` problem+json.
 - Given две компании, when каждая загружает файл, then записи содержат разные `company_id`, и выборка одной компании не видит файл другой.
@@ -96,17 +96,19 @@ context:
 ## Implementation Notes
 
 - **Слои (AD-011):** `domain` содержит `StoredFile`/`PdfInspection`, ошибки и Protocol-порты; `application/store_pdf.py` знает только порты; pypdfium2 изолирован в `infrastructure/pdf.py`, MinIO — в `infrastructure/storage.py`, SQLAlchemy — в `infrastructure/{db,models,repository}.py`; FastAPI — только в `transport`. Composition root — `app/wiring.py`.
-- **Порядок валидации:** длина имени (≤255 символов) → размер (≤`5 * 1024 * 1024`, ровно 5 МиБ допустимо) → magic `%PDF-` (объявленный Content-Type и расширение не доверяются) → реальный разбор pypdfium2. Текстовый слой — хотя бы один непробельный символ на всех страницах; иначе `PdfWithoutTextLayer` (422, `pdf-without-text-layer`).
+- **Порядок валидации:** длина имени (≤255 символов) → размер (≤`50 * 1024 * 1024`, ровно 50 МиБ допустимо) → magic `%PDF-` (объявленный Content-Type и расширение не доверяются) → реальный разбор pypdfium2. Текстовый слой — хотя бы один непробельный символ на всех страницах; иначе `PdfWithoutTextLayer` (422, `pdf-without-text-layer`).
 - **Запись:** `StoredFile.create` генерирует UUID и `datetime.now(UTC)`, ключ — `{company_id}/{file_id}.pdf`. Объект кладётся в MinIO (bucket `PDF_EXTRACT_BUCKET`, ленивое создание) до вставки строки `file`; репозиторий не коммитит, commit/rollback — в `make_store_pdf`. Orphan-объект при сбое commit допустим по решению истории. Дедупликации нет.
 - **Контракт:** `POST /v1/files` (multipart `file`, `X-Company-Id`, опциональный `X-User-Id`) → `201` с `FileResponse` (`id`, `mime_type`, `size`, `meta`, `created_at`), `storage_key` наружу не отдаётся; `meta = {filename, pages}`. Нет `X-Company-Id` → 401 до use case. Ошибки — `application/problem+json`; битый/зашифрованный PDF → 422 `invalid-pdf`.
 - **БД/деплой:** отдельная база `pdf_extract`, миграция `0001_create_file` (id, company_id с индексом, storage_key unique, mime_type, size, meta JSON, created_by, created_at); Dockerfile выполняет `alembic upgrade head` перед uvicorn. В compose добавлен внутренний сервис `pdf-extract` (Postgres + MinIO, только `expose`), gateway получил `PDF_EXTRACT_URL` и префикс `/v1/files`.
-- **Тесты:** sqlite + реальные Alembic-миграции; fake-storage; настоящий `PdfiumInspector`; PDF генерируются reportlab (ASCII). Покрыты валидная загрузка, ровно 5 МиБ, >5 МиБ, не-PDF, PDF без текста, битый/зашифрованный PDF, длинное имя, 401, изоляция компаний, откат при сбое storage и production-композиция.
+- **Тесты:** sqlite + реальные Alembic-миграции; fake-storage; настоящий `PdfiumInspector`; PDF генерируются reportlab (ASCII). Покрыты валидная загрузка, ровно 50 МиБ, >50 МиБ, не-PDF, PDF без текста, битый/зашифрованный PDF, длинное имя, 401, изоляция компаний, откат при сбое storage и production-композиция.
 
 ## Spec Change Log
 
+- 2026-10-21: лимит файла изменён с 5 МиБ на 50 МиБ по решению владельца; обновлены `MAX_FILE_SIZE_BYTES`, текст `413`, тесты, nginx (`client_max_body_size 51m`) и документация.
+
 ## Review Triage Log
 
-- **2026-10-20 · blind-hunter + edge-case-hunter · multipart читается целиком до проверки лимита** — verdict: medium. evidence: `app/transport/routes.py:43` делает `file.file.read()` без ограничения, а `FileTooLarge` бросается уже в use case (`store_pdf.py:22`); при 5 МиБ контракт соблюдён, но память растёт на любой размер. route: patch → читать не более `MAX_FILE_SIZE_BYTES + 1`.
+- **2026-10-20 · blind-hunter + edge-case-hunter · multipart читается целиком до проверки лимита** — verdict: medium. evidence: `app/transport/routes.py:43` делает `file.file.read()` без ограничения, а `FileTooLarge` бросается уже в use case (`store_pdf.py:22`); при 50 МиБ контракт соблюдён, но память растёт на любой размер. route: patch → читать не более `MAX_FILE_SIZE_BYTES + 1`.
 - **2026-10-20 · blind-hunter + edge-case-hunter + verification-gap · `created_by` длиннее 255 вызывает ошибку БД после записи в MinIO** — verdict: medium. evidence: `X-User-Id` без валидации попадает в `String(255)` (`models.py:27`); в rate-catalog аналогичная проверка есть (`import_rates.py:167`), здесь её нет; через gateway `sub` — UUID, но прямой вызов с длинным заголовком даёт 500 и orphan-объект. route: patch → `MAX_CREATED_BY_LENGTH=255` и `InvalidUpload`.
 - **2026-10-20 · blind-hunter + edge-case-hunter · гонка ленивого создания bucket** — verdict: medium. evidence: `storage.py:51-54` проверяет `bucket_exists` и затем `make_bucket`; два первых параллельных запроса дают `BucketAlreadyOwnedByYou` одному из них. route: patch → идемпотентно обрабатывать это S3-исключение.
 - **2026-10-20 · blind-hunter + edge-case-hunter · `MINIO_SECURE` не передаётся в pdf-extract** — verdict: medium. evidence: `.env.example:39` документирует переменную, адаптер её читает (`storage.py:29`), но compose-сервис `pdf-extract` её не задаёт; при HTTPS-MinIO загрузки пойдут по HTTP. route: patch → добавить env в compose.
@@ -123,11 +125,11 @@ context:
 - **2026-10-20 · blind-hunter · README pdf-extract и комментарии deploy устарели** — verdict: low. evidence: `pdf-extract/README.md` говорит «каркас», нет контракта/переменных/миграций; комментарий MinIO в compose упоминает только rate-catalog. route: patch → обновить документацию.
 - **2026-10-20 · blind-hunter · Dockerfile игнорирует `uv.lock`** — verdict: low. evidence: `pip install .` — тот же паттерн, что в rate-catalog; воспроизводимость сборки не входит в интент этой истории. route: defer.
 - **2026-10-20 · edge-case-hunter · пустой `X-Company-Id` даёт 422 вместо 401** — verdict: false. evidence: пустая строка — невалидный UUID, а не отсутствие заголовка; отсутствие по-прежнему даёт 401 (`routes.py:31`), gateway всегда присылает UUID. route: reject.
-- **2026-10-20 · blind-hunter · gateway буферизует тело и имеет таймаут 10 с** — verdict: false (таймаут). evidence: буферизация — существующий дизайн прокси для всех маршрутов; таймаут применяется к запросу gateway→pdf-extract внутри Docker-сети, где 5 МиБ передаются заведомо быстрее 10 с. Ограничение тела на edge — pre-existing, не этой истории. route: reject таймаут; edge-лимит → defer.
+- **2026-10-20 · blind-hunter · gateway буферизует тело и имеет таймаут 10 с** — verdict: false (таймаут). evidence: буферизация — существующий дизайн прокси для всех маршрутов; таймаут применяется к запросу gateway→pdf-extract внутри Docker-сети, где 50 МиБ передаются заведомо быстрее 10 с. Ограничение тела на edge — pre-existing, не этой истории. route: reject таймаут; edge-лимит → defer.
 - **2026-10-20 · verification-gap · удаление problem-обработчиков не ломает тесты** — verdict: medium. evidence: проверено мутацией: production `main.app` без обработчиков даёт 500/plain на запрос без `X-Company-Id`, а набор остаётся зелёным. route: patch → ошибочный запрос через `main.app`.
 - **2026-10-20 · verification-gap · ветка `POSTGRES_DSN` в `migrations/env.py` не тестируется** — verdict: medium. evidence: проверено мутацией: без env-ветки `alembic upgrade head` уходит в `alembic.ini` и падает; фактический путь сейчас рабочий (проверен вручную на sqlite). route: patch → тест только с env.
 - **2026-10-20 · verification-gap · правило текстового слоя не закреплено для поздней страницы и пробелов** — verdict: medium. evidence: проверено мутацией: проверка только первой страницы и `len(text)` вместо непробельных символов оставляют набор зелёным. route: patch → тесты «текст на второй странице» и «только пробелы».
-- **2026-10-20 · verification-gap · лимиты 5 МиБ и 255 символов не закреплены литералами** — verdict: low. evidence: проверено мутацией: замена констант на 4 МиБ/100 оставляет набор зелёным; тесты самосогласованы. route: patch → ассерты констант против литералов.
+- **2026-10-20 · verification-gap · лимиты 50 МиБ и 255 символов не закреплены литералами** — verdict: low. evidence: проверено мутацией: замена констант на 4 МиБ/100 оставляет набор зелёным; тесты самосогласованы. route: patch → ассерты констант против литералов.
 - **2026-10-20 · blind-hunter · нет тестов на Cyrillic и сбой БД** — verdict: low. evidence: кириллица зависит от шрифта фикстуры, а orphan-объект при сбое commit прямо разрешён решением спеки; отдельного контрактного дефекта нет. route: reject.
 - **2026-10-20 · blind-hunter · схема не проверяется на реальном PostgreSQL** — verdict: low. evidence: типы `Uuid`/`DateTime(timezone=True)` совпадают в модели и миграции; поднятие Postgres в unit-CI — infra-задача вне истории. route: reject (отмечено в Verification как непокрытое).
 
