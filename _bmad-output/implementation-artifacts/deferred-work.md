@@ -158,9 +158,25 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-1b-ui-загрузка-pdf-и-статусы-обработки.md`
   summary: Сбор сводного статуса удерживает сессию БД во время HTTP-вызова в pdf-extract — при медленном upstream пул соединений расходуется.
   evidence: `estimate/app/application/processing_status.py` вызывает `pdf_extract.get_file` внутри `with self._session_factory()`; на текущем объёме (десятки смет) это незаметно, но при росте нагрузки нужен вынос вызова за пределы транзакции либо отдельная сессия.
+  status: resolved
+  resolved_by: `_bmad-output/implementation-artifacts/spec-7-3-estimate-деградация-и-контракт-внешних-вызовов.md` (2026-10-21)
 
 ## Deferred from: code review of spec-7-2-ui-просмотр-спецификации-маппинга-и-стоимости.md (2026-10-21)
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-2-ui-просмотр-спецификации-маппинга-и-стоимости.md`
   summary: Обогащение позиций названиями расценок держит сессию БД во время HTTP-вызова в rate-catalog — соединение удерживается до таймаута клиента.
   evidence: `estimate/app/application/list_items.py` вызывает `rate_catalog.find_rates` внутри `with self._session_factory()`; тот же паттерн отмечен для pdf-extract в Story 7.1b. На текущих объёмах (до 500 позиций на страницу) незаметно, но при росте нагрузки нужен вынос вызова за пределы транзакции либо отдельная сессия.
+  status: resolved
+  resolved_by: `_bmad-output/implementation-artifacts/spec-7-3-estimate-деградация-и-контракт-внешних-вызовов.md` (2026-10-21)
+
+## Deferred from: implementation of spec-7-3-estimate-деградация-и-контракт-внешних-вызовов.md (2026-10-21)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-3-estimate-деградация-и-контракт-внешних-вызовов.md`
+  summary: `create_estimate`, `attach_source`, `review_item` и `calculate_cost` по-прежнему выполняют сетевой вызов при открытой сессии БД.
+  evidence: `estimate/app/wiring.py` — use case'ы записи открывают сессию и внутри неё зовут внешние сервисы: company-org (`create_estimate`), pdf-extract (`attach_source`), rate-catalog (`review_item`, `calculate_cost`). Code Map этой спеки ограничивал правку тремя use case'ами на чтение; на путях записи вынос вызова за пределы сессии требует другой последовательности (предварительное чтение → сетевой вызов → запись в новой транзакции), а деградация там невозможна в принципе: внешний ответ участвует в решении о записи.
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-3-estimate-деградация-и-контракт-внешних-вызовов.md`
+  summary: Семантика деградации и «нарушения контракта» закреплена только для `estimate`: остальные сервисы системы по-прежнему различают свои `404`/`5xx` по-своему.
+  evidence: `mapping-service`, `pdf-extract`, `company-org`, `rate-catalog` не вызывают друг друга и не имеют общего хелпера; единый контракт внешних вызовов зафиксирован в `estimate/app/infrastructure/http.py` — при появлении у сервиса нескольких исходящих зависимостей хелпер стоит перенести в общий модуль.
+- source_spec: `_bmad-output/implementation-artifacts/spec-7-3-estimate-деградация-и-контракт-внешних-вызовов.md`
+  summary: Проверки `estimate` идут на SQLite; денежные `Numeric(18,2)` и `DateTime(timezone=True)` в Postgres не проверяются.
+  evidence: `tests/conftest.py` мигрирует sqlite-БД; postgres service-контейнер в CI не поднимается (открытые пункты `epic-2-retro-item-5`, `epic-4-retro-item-9`). Для этой истории не проверялось: реальный Postgres и живой стенд compose с недоступным rate-catalog/pdf-extract.

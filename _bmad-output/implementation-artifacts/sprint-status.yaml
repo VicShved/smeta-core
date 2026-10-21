@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 14:17'
+last_updated: '10-21-2026 15:00'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -178,21 +178,21 @@ action_items:
       GET .../items — сделать необязательным, деградация — пустые rate_code/rate_name
       с признаком в ответе"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
   - id: "epic-7-retro-item-2-единая-семантика-404-в-http-клиентах"
     epic: 7
     action: "estimate: единый хелпер «404 = ресурса нет, иначе недоступность» в трёх
       HTTP-клиентах; различать 422 (нарушение контракта) и 5xx в пакете расценок"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
   - id: "epic-7-retro-item-3-сессия-бд-не-удерживается-во-время-http"
     epic: 7
     action: "estimate: вынести сетевые вызовы (processing_status, list_items) за пределы
       сессии БД — один пункт вместо двух отложенных в 7.1b и 7.2"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
   - id: "epic-7-retro-item-4-сброс-состояния-загрузки-при-смене-этапа"
     epic: 7
@@ -242,7 +242,7 @@ action_items:
     action: "estimate: тест — ответы импорта позиций и ручной проверки не содержат
       rate_code/rate_name (обогащение только на пути просмотра)"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
   - id: "epic-7-retro-item-11-цель-эпика-7-не-достигнута"
     epic: 7
