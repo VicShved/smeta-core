@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 17:23'
+last_updated: '10-21-2026 17:29'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -271,7 +271,7 @@ action_items:
     action: "Зафиксировать Story 3.3 пост-фактум: спека и контракт снапшотов в позициях
       сметы, проверка AC эпика"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-3-retro-10-21-2026.md"
   - id: "epic-3-retro-item-33-переписать-ac-3-3-в-epics-md-заморозка-р"
     epic: 3
@@ -285,14 +285,14 @@ action_items:
     action: "CI rate-catalog на реальных Postgres и MinIO: сервис-контейнеры, миграции
       и smoke импорта"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-3-retro-10-21-2026.md"
   - id: "epic-3-retro-item-35-тест-неизменяемости-расчёт-сметы-импорт"
     epic: 3
     action: "Тест неизменяемости: расчёт сметы, импорт новой версии справочника, итог
       и снапшоты не изменились"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-3-retro-10-21-2026.md"
   - id: "epic-5-retro-item-36-сквозной-прогон-pdf-текст-llm-маппинг-на"
     epic: 5
@@ -313,7 +313,7 @@ action_items:
     action: "Спека 5.2: зафиксировать недостижимость match=null при непустом каталоге
       и уточнить контракт"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-5-retro-10-21-2026.md"
   - id: "epic-5-retro-item-39-импорт-позиций-устранить-гонку-бд-ограни"
     epic: 5
@@ -334,7 +334,7 @@ action_items:
     action: "CI estimate на реальном Postgres: сервис-контейнер, миграции и прогон
       тестов"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-6-retro-10-21-2026.md"
   - id: "epic-6-retro-item-42-идемпотентность-создания-сметы-и-версии"
     epic: 6
