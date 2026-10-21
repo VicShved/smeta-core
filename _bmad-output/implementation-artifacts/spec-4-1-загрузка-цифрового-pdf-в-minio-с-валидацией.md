@@ -25,7 +25,7 @@ context:
 
 **Never:** OCR и конвертация PDF → текст (Story 4.2); привязка файла к смете/этапу; скачивание, список и удаление файлов; UI; правки контракта импорта rate-catalog; чтение чужих БД; хранение файла в БД.
 
-**Решения (2026-10-20):** `POST /v1/files` → `201` с `FileResponse` (`id`, `mime_type`, `size`, `meta`, `created_at`), `storage_key` наружу не отдаётся; bucket `pdf-extract-files` (env `PDF_EXTRACT_BUCKET`), ключ `{company_id}/{file_id}.pdf`; `meta = {"filename", "pages"}`; `413` при размере > 50 МиБ; `415` если содержимое не PDF (объявленный Content-Type не доверяем); `422` для битого/зашифрованного PDF, PDF без текстового слоя и имени файла длиннее 255 символов. Текстовый слой — хотя бы один непробельный символ во всех страницах. Файл проверяется до записи; объект кладётся в MinIO до вставки строки, orphan-объект при сбое commit допустим (как в 3.1). Дедупликации нет: каждая загрузка — новый `file`. Bucket создаётся лениво при первой записи (как в rate-catalog).
+**Решения (2026-10-20):** `POST /v1/files` → `201` с `FileResponse` (`id`, `mime_type`, `size`, `meta`, `created_at`), `storage_key` наружу не отдаётся; bucket `pdf-extract-files` (env `PDF_EXTRACT_BUCKET`), ключ `{company_id}/{file_id}/source.pdf`; `meta = {"filename", "pages"}`; `413` при размере > 50 МиБ; `415` если содержимое не PDF (объявленный Content-Type не доверяем); `422` для битого/зашифрованного PDF, PDF без текстового слоя и имени файла длиннее 255 символов. Текстовый слой — хотя бы один непробельный символ во всех страницах. Файл проверяется до записи; объект кладётся в MinIO до вставки строки, orphan-объект при сбое commit допустим (как в 3.1). Дедупликации нет: каждая загрузка — новый `file`. Bucket создаётся лениво при первой записи (как в rate-catalog).
 
 ## I/O & Edge-Case Matrix
 
@@ -97,12 +97,14 @@ context:
 
 - **Слои (AD-011):** `domain` содержит `StoredFile`/`PdfInspection`, ошибки и Protocol-порты; `application/store_pdf.py` знает только порты; pypdfium2 изолирован в `infrastructure/pdf.py`, MinIO — в `infrastructure/storage.py`, SQLAlchemy — в `infrastructure/{db,models,repository}.py`; FastAPI — только в `transport`. Composition root — `app/wiring.py`.
 - **Порядок валидации:** длина имени (≤255 символов) → размер (≤`50 * 1024 * 1024`, ровно 50 МиБ допустимо) → magic `%PDF-` (объявленный Content-Type и расширение не доверяются) → реальный разбор pypdfium2. Текстовый слой — хотя бы один непробельный символ на всех страницах; иначе `PdfWithoutTextLayer` (422, `pdf-without-text-layer`).
-- **Запись:** `StoredFile.create` генерирует UUID и `datetime.now(UTC)`, ключ — `{company_id}/{file_id}.pdf`. Объект кладётся в MinIO (bucket `PDF_EXTRACT_BUCKET`, ленивое создание) до вставки строки `file`; репозиторий не коммитит, commit/rollback — в `make_store_pdf`. Orphan-объект при сбое commit допустим по решению истории. Дедупликации нет.
+- **Запись:** `StoredFile.create` генерирует UUID и `datetime.now(UTC)`, ключ — `{company_id}/{file_id}/source.pdf`. Объект кладётся в MinIO (bucket `PDF_EXTRACT_BUCKET`, ленивое создание) до вставки строки `file`; репозиторий не коммитит, commit/rollback — в `make_store_pdf`. Orphan-объект при сбое commit допустим по решению истории. Дедупликации нет.
 - **Контракт:** `POST /v1/files` (multipart `file`, `X-Company-Id`, опциональный `X-User-Id`) → `201` с `FileResponse` (`id`, `mime_type`, `size`, `meta`, `created_at`), `storage_key` наружу не отдаётся; `meta = {filename, pages}`. Нет `X-Company-Id` → 401 до use case. Ошибки — `application/problem+json`; битый/зашифрованный PDF → 422 `invalid-pdf`.
 - **БД/деплой:** отдельная база `pdf_extract`, миграция `0001_create_file` (id, company_id с индексом, storage_key unique, mime_type, size, meta JSON, created_by, created_at); Dockerfile выполняет `alembic upgrade head` перед uvicorn. В compose добавлен внутренний сервис `pdf-extract` (Postgres + MinIO, только `expose`), gateway получил `PDF_EXTRACT_URL` и префикс `/v1/files`.
 - **Тесты:** sqlite + реальные Alembic-миграции; fake-storage; настоящий `PdfiumInspector`; PDF генерируются reportlab (ASCII). Покрыты валидная загрузка, ровно 50 МиБ, >50 МиБ, не-PDF, PDF без текста, битый/зашифрованный PDF, длинное имя, 401, изоляция компаний, откат при сбое storage и production-композиция.
 
 ## Spec Change Log
+
+- 2026-10-21: объект переехал в папочный layout `{company_id}/{file_id}/source.pdf` (текст — `source.txt`); старые ключи переносятся `app.tools.migrate_storage_layout`.
 
 - 2026-10-21: лимит файла изменён с 5 МиБ на 50 МиБ по решению владельца; обновлены `MAX_FILE_SIZE_BYTES`, текст `413`, тесты, nginx (`client_max_body_size 51m`) и документация.
 

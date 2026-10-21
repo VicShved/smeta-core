@@ -17,23 +17,23 @@ context:
 
 **Problem:** После Story 4.1 pdf-extract принимает и хранит цифровой PDF, но не отдаёт текст: следующему шагу конвейера (LLM-извлечение спецификации) нечего читать.
 
-**Approach:** Добавить идемпотентный шаг извлечения текста из уже загруженного PDF: `POST /v1/files/{file_id}/extract` читает объект из MinIO, извлекает layout-текст через pdfplumber, сохраняет артефакт `file_text` в БД pdf-extract и возвращает его; `GET /v1/files/{file_id}/text` отдаёт сохранённый артефакт. Контракт артефакта транспортно-нейтрален: он живёт в БД и доступен по HTTP, без очереди.
+**Approach:** Добавить идемпотентный шаг извлечения текста из уже загруженного PDF: `POST /v1/files/{file_id}/extract` читает объект из MinIO, извлекает layout-текст через pdfplumber, сохраняет текст в S3 рядом с PDF (`{company_id}/{file_id}/source.txt`), а метаданные — в `file_text` БД pdf-extract; `GET /v1/files/{file_id}/text` собирает артефакт из метаданных и объекта. Контракт артефакта транспортно-нейтрален: он доступен по HTTP, без очереди.
 
 ## Boundaries & Constraints
 
-**Always:** только цифровые PDF с текстовым слоем (AD-005), OCR нет; `company_id` обязателен, файл и артефакт скоупятся компанией (AD-013); артефакт хранится в БД pdf-extract, не в MinIO и не в чужой БД (AD-014); текст сохраняет структуру строк/таблиц; ошибки — `application/problem+json`; извлечение идемпотентно (повторный POST перезаписывает артефакт); `POST`/`GET` возвращают `200` с `file_id`, `content`, `page_count`, `char_count`, `coverage`, `extracted_at`; `storage_key` наружу не отдаётся.
+**Always:** только цифровые PDF с текстовым слоем (AD-005), OCR нет; `company_id` обязателен, файл и артефакт скоупятся компанией (AD-013); текст хранится в MinIO в папке файла (`source.txt`), метаданные — в БД pdf-extract; в чужой БД не ходим (AD-014); текст сохраняет структуру строк/таблиц; ошибки — `application/problem+json`; извлечение идемпотентно (повторный POST перезаписывает артефакт); `POST`/`GET` возвращают `200` с `file_id`, `content`, `page_count`, `char_count`, `coverage`, `extracted_at`; `storage_key` наружу не отдаётся.
 
 **Never:** OCR, привязка файла к смете/этапу, автоматическое извлечение при загрузке, очередь/брокер, UI, удаление артефактов, изменение контракта `POST /v1/files`, правки gateway/deploy (префикс `/v1/files` уже есть); текст не хранится в MinIO.
 
-**Решения (2026-10-20):** отдельные `POST /v1/files/{file_id}/extract` (200) и `GET /v1/files/{file_id}/text` (200); чужая/несуществующая запись и отсутствующий артефакт → одинаковый 404; пропавший объект/сбой MinIO → 502; битый PDF → 422 `invalid-pdf`; `coverage = min(1, непробельные символы pdfplumber / text_length pypdfium2)` — диагностическая метрика, не повод для отказа; `pdfplumber.extract_text(layout=True)`, строки с обрезанными хвостами, страницы через `\f`; `char_count` — непробельные символы; артефакт — `file_text(file_id PK/FK, company_id, content, page_count, char_count, coverage, extracted_at)`, upsert по `file_id`. Покрытие ≥95% подтверждается прокси-метрикой на сгенерированных фикстурах; реальный корпус ГРАНД/АВК в репозитории отсутствует и остаётся непокрытым.
+**Решения (2026-10-20):** отдельные `POST /v1/files/{file_id}/extract` (200) и `GET /v1/files/{file_id}/text` (200); чужая/несуществующая запись и отсутствующий артефакт → одинаковый 404; пропавший объект/сбой MinIO → 502; битый PDF → 422 `invalid-pdf`; `coverage = min(1, непробельные символы pdfplumber / text_length pypdfium2)` — диагностическая метрика, не повод для отказа; `pdfplumber.extract_text(layout=True)`, строки с обрезанными хвостами, страницы через `\f`; `char_count` — непробельные символы; артефакт — текст в S3 `{company_id}/{file_id}/source.txt` и метаданные `file_text(file_id PK/FK, company_id, page_count, char_count, coverage, extracted_at)`, upsert метаданных по `file_id`. Покрытие ≥95% подтверждается прокси-метрикой на сгенерированных фикстурах; реальный корпус ГРАНД/АВК в репозитории отсутствует и остаётся непокрытым.
 
 ## I/O & Edge-Case Matrix
 
 | Scenario | Input / State | Expected Output / Behavior | Error Handling |
 |----------|--------------|---------------------------|----------------|
-| Извлечение | загруженный PDF, `X-Company-Id` задан | `200`, артефакт в БД, `content` со строками/колонками | — |
+| Извлечение | загруженный PDF, `X-Company-Id` задан | `200`, `source.txt` в S3, метаданные в БД, `content` со строками/колонками | — |
 | Многостраничный PDF | текст и таблица на нескольких страницах | страницы разделены `\f`, строки и колонки сохранены | — |
-| Повторное извлечение | артефакт уже есть | `200`, одна строка `file_text` обновлена | — |
+| Повторное извлечение | артефакт уже есть | `200`, `source.txt` перезаписан, одна строка метаданных обновлена | — |
 | Чтение до извлечения | артефакта нет | — | `404` problem+json |
 | Чужая компания | `file_id` другой компании | — | `404`, неотличимо от отсутствия |
 | Нет identity | без `X-Company-Id` | — | `401` |
@@ -45,11 +45,11 @@ context:
 
 ## Code Map
 
-- `pdf-extract/app/domain/text.py` -- новый: `ExtractedText` (`text`, `page_count`), `TextArtifact` (`file_id`, `company_id`, `content`, `page_count`, `char_count`, `coverage`, `extracted_at`) и `TextArtifact.create`.
+- `pdf-extract/app/domain/text.py` -- `ExtractedText`, `TextArtifact` (с контентом для API), `TextArtifactMetadata` (без контента), `text_storage_key` и `TextArtifact.create`.
 - `pdf-extract/app/domain/errors.py` -- добавить `FileNotFound`, `TextArtifactNotFound` (404), `StorageUnavailable` (502).
-- `pdf-extract/app/domain/ports.py` -- расширить `FileRepository.get(*, company_id, file_id)`, `FileStorage.get(*, key) -> bytes`; добавить `TextArtifactRepository.upsert/get`, `PdfTextExtractor.extract(content) -> ExtractedText`.
+- `pdf-extract/app/domain/ports.py` -- `FileStorage.put/get` для PDF и текста; `TextArtifactRepository.upsert_metadata/get_metadata`; `PdfTextExtractor.extract`.
 - `pdf-extract/app/application/extract_text.py` -- новый: `ExtractText` (файл → MinIO → pdfplumber → coverage → upsert) и `GetTextArtifact` (чтение с 404).
-- `pdf-extract/app/infrastructure/models.py` -- `FileTextRow` (`file_text`: file_id PK/FK cascade, company_id индекс, content Text, page_count, char_count, coverage Float, extracted_at).
+- `pdf-extract/app/infrastructure/models.py` -- `FileTextRow` (`file_text`: file_id PK/FK cascade, company_id индекс, page_count, char_count, coverage Float, extracted_at); текст — в S3.
 - `pdf-extract/app/infrastructure/repository.py` -- `SqlAlchemyFileRepository.get` со скоупом компании; `SqlAlchemyTextArtifactRepository` с upsert и get.
 - `pdf-extract/app/infrastructure/pdf.py` -- `PdfplumberTextExtractor`: `pdfplumber.open(BytesIO(...))`, `extract_text(layout=True)`, `rstrip` строк, `\f`; pdfminer/pdfplumber-исключения → `InvalidPdf`.
 - `pdf-extract/app/infrastructure/storage.py` -- `MinioFileStorage.get`: `get_object`, `read`, `close/release_conn`; любые ошибки чтения → `StorageUnavailable`.
@@ -72,7 +72,7 @@ context:
 **Execution:**
 - [x] `pdf-extract/app/domain/{text,errors,ports}.py` -- типы, ошибки и порты артефакта -- application не знает про FastAPI/SQLAlchemy/pdfplumber.
 - [x] `pdf-extract/app/application/extract_text.py` -- `ExtractText`/`GetTextArtifact` -- порядок чтения, coverage, upsert и 404.
-- [x] `pdf-extract/app/infrastructure/{models,repository}.py` -- `file_text` и репозитории -- изоляция компании и идемпотентная запись.
+- [x] `pdf-extract/app/infrastructure/{models,repository}.py` -- метаданные `file_text` без контента -- изоляция компании и идемпотентный upsert.
 - [x] `pdf-extract/app/infrastructure/{pdf,storage}.py` -- pdfplumber-экстрактор и MinIO.get -- реальный текст и 502 при сбое чтения.
 - [x] `pdf-extract/migrations/versions/0002_create_file_text.py` -- миграция -- схема совпадает с моделью, FK на `file`.
 - [x] `pdf-extract/app/transport/{schemas,routes,problem}.py`, `wiring.py` -- маршруты extract/text -- 200/401/404/422/502 и problem+json.
@@ -93,14 +93,16 @@ context:
 ## Implementation Notes
 
 - **Слои (AD-011):** `domain/text.py` содержит `ExtractedText`, `TextArtifact.create` и подсчёт непробельных символов; `application/extract_text.py` знает только порты; pdfplumber/pypdfium2 изолированы в `infrastructure/pdf.py`, MinIO — в `infrastructure/storage.py`, SQLAlchemy — в `infrastructure/{models,repository}.py`; FastAPI — только в `transport`.
-- **Порядок extract:** проверка файла в репозитории с фильтром `company_id` (иначе 404) → чтение объекта из MinIO (сбой → 502) → `pdfplumber.extract_text(layout=True)` (битый/зашифрованный PDF → 422 `invalid-pdf`) → `coverage = min(1, pdfplumber_chars / pypdfium2_chars)` → upsert `file_text` по `file_id`.
+- **Порядок extract:** проверка файла в репозитории с фильтром `company_id` (иначе 404) → чтение объекта из MinIO (сбой → 502) → `pdfplumber.extract_text(layout=True)` (битый/зашифрованный PDF → 422 `invalid-pdf`) → `coverage = min(1, pdfplumber_chars / pypdfium2_chars)` → `put source.txt` в S3 → upsert метаданных `file_text` по `file_id`.
 - **Текст:** строки обрезаны справа, страницы соединены `\f`; `char_count` и числитель coverage считают только непробельные символы, поэтому layout-отступы не искажают метрику.
-- **Идемпотентность и tenancy:** `file_text` имеет PK/FK `file_id` с `ON DELETE CASCADE`, `company_id` с индексом; `upsert` обновляет существующую строку; `get` фильтрует и `file_id`, и `company_id`, поэтому чужая компания и отсутствие артефакта дают одинаковый 404.
+- **Идемпотентность и tenancy:** `file_text` имеет PK/FK `file_id` с `ON DELETE CASCADE`, `company_id` с индексом; `upsert_metadata` обновляет метаданные, `put source.txt` перезаписывает объект; `get_metadata` фильтрует `file_id` и `company_id`, поэтому чужая компания и отсутствие артефакта дают одинаковый 404. Чтение текста: метаданные из БД → объект `source.txt` из S3; нет объекта → 502.
 - **Контракт:** `POST /v1/files/{file_id}/extract` и `GET /v1/files/{file_id}/text` → `200` с `{file_id, content, page_count, char_count, coverage, extracted_at}`; `X-Company-Id` проверяется до use case (401); `storage_key` наружу не отдаётся.
 - **UTC:** SQLite теряет `tzinfo`, поэтому репозиторий нормализует `extracted_at`/`created_at` к UTC, сохраняя контракт ISO-8601.
 - **Тесты:** sqlite + реальные Alembic-миграции; настоящие pdfplumber/pypdfium2; reportlab-фикстуры (ASCII); fake-storage с `get`; покрыты структура таблиц/страниц, идемпотентность, coverage < 0.95, 401/404/422/502 и production composition. Gateway-тесты подтверждают проксирование вложенных путей без изменения кода gateway.
 
 ## Spec Change Log
+
+- 2026-10-21: контент перенесён из `file_text.content` в S3 (`{company_id}/{file_id}/source.txt`), в БД остались метаданные; миграция `0003` удаляет колонку, entrypoint запускает `app.tools.migrate_storage_layout`.
 
 ## Review Triage Log
 
