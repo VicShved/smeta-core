@@ -151,6 +151,8 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
   summary: `GET /v1/estimates?stage_id=` считает `total` и `items` двумя запросами — при записи между ними счётчик и список могут разойтись.
   evidence: `estimate/app/infrastructure/repository.py` — `count_by_stage` и `list_by_stage`; на объёмах MVP (десятки смет на этап) расхождение маловероятно, но пагинация показывается пользователю. Исправляется одним запросом с `COUNT(*) OVER ()`.
+  status: resolved
+  resolved_by: `estimate/app/infrastructure/repository.py` (2026-10-21) — `list_by_stage_page` с `COUNT(*) OVER ()`; пустая страница досчитывается отдельным count; покрыто sqlite- и Postgres-тестами.
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
   summary: nginx-прокси жёстко привязан к docker-сети (`resolver 127.0.0.11`, `api-gateway:8000`) — переопределить upstream нельзя.
   evidence: `ui/nginx.conf`; в compose работает, но для внешнего стенда (Vite dev-server, иной хост) потребуется параметризация через envsubst.
