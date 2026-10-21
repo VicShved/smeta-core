@@ -7,7 +7,7 @@ paradigm: 'DDD-границы + service-per-capability, hexagonal (ports & adapt
 scope: 'инварианты, удерживающие сервисы smeta1 и инфраструктуру деплоя от расхождений'
 status: final
 created: 2026-10-17
-updated: 2026-10-20
+updated: 2026-10-21
 binds: ['api-gateway', 'auth-users', 'company-org', 'estimate', 'pdf-extract', 'llm-gateway', 'mapping-service', 'rate-catalog', 'calc-service', 'ui', 'deploy']
 sources: []
 companions: []
@@ -32,14 +32,14 @@ flowchart TD
 ## Invariants (Architecture Decisions)
 
 ### AD-001: Детерминированный расчёт
-- **Binds:** calc-service, estimate_item (snapshot-значения), валидация сумм
+- **Binds:** estimate (владелец расчёта), estimate_item (snapshot-значения), валидация сумм
 - **Prevents:** утечка LLM-нестабильности в финальную стоимость
-- **Rule:** Calc-service использует только числовые snapshot-поля (`rate_amount_snapshot`, количества) и фиксированные формулы. LLM никогда не выполняет вычисления.
+- **Rule:** Расчёт выполняет сервис `estimate` (решение владельца 2026-10-20): используются только числовые snapshot-поля (`rate_amount_snapshot`, количества) и фиксированные формулы. LLM никогда не выполняет вычисления. `calc-service` остаётся каркасом и расчётом не владеет.
 
 ### AD-002: Snapshot расценок
 - **Binds:** rate-catalog, estimate, estimate_version, estimate_item
 - **Prevents:** пересчёт ранее рассчитанных активных версий смет при изменении справочника
-- **Rule:** При расчёте версии сметы сохраняются `rate_snapshot_id`, `unit_snapshot`, `rate_amount_snapshot`. Изменение текущей версии rate_catalog не влияет на уже существующие версии смет. Поле `rate_catalog_id` хранится только как провенанс и **не участвует в расчёте**.
+- **Rule:** При расчёте версии сметы сохраняются `rate_snapshot_id`, `unit_snapshot`, `rate_amount_snapshot`. Изменение текущей версии rate_catalog не влияет на уже существующие версии смет. Поле `rate_catalog_id` — провенанс: по нему при первом расчёте захватывается снапшот строки расценки; в формулах участвует `rate_amount_snapshot`.
 
 ### AD-003: Гибрид LLM с редукцией данных
 - **Binds:** llm-gateway, pdf-extract, mapping-service
@@ -110,12 +110,12 @@ flowchart TD
 - **api-gateway** — маршрутизация, **проверка JWT (единственная точка)**, установка/перезапись identity-заголовков, rate-limits при необходимости
 - **auth-users** — выпуск JWT, users/credentials, привязка пользователя к компании
 - **company-org** — компании, договоры (adjacency list, произвольная глубина), этапы
-- **estimate** — сметы, версии (активная ровно одна), позиции (со снапшотами)
+- **estimate** — сметы, версии (активная ровно одна), позиции (со снапшотами), **детерминированный расчёт стоимости**
 - **pdf-extract** — PDF→текст (pdfplumber/pypdfium2), валидация цифрового PDF
 - **llm-gateway** — local (CPU-only, GGUF q2–q3) + cloud (только structure_only + аудит + allow_cloud_fallback)
 - **mapping-service** — сопоставление позиций со справочником, нормализация ЕИ, **confidence** (0–1), пометка <0.70
 - **rate-catalog** — импорт Excel (.xlsx), маппер колонок, версии, хранение
-- **calc-service** — **детерминированный** расчёт детальной/итоговой стоимости
+- **calc-service** — каркас сервиса расчёта; детерминированный расчёт выполняет `estimate` (решение владельца 2026-10-20)
 - **s3/minio** — хранение загруженных PDF и импортируемых Excel
 - **ui (Vue)** — простой UI MVP (валидация маппинга/diff — 1.1)
 
@@ -162,10 +162,8 @@ flowchart LR
   gw --> cat["rate-catalog"]
   gw --> pdf["pdf-extract"]
   gw --> map["mapping-service"]
-  gw --> calc["calc-service"]
   pdf --> llm["llm-gateway"]
   map --> llm
-  est --> calc
   est --> cat
   est --> s3[("MinIO")]
   pdf --> s3
@@ -180,8 +178,8 @@ flowchart LR
 - **contract** (id, company_id, parent_id, name, ...) — adjacency list, произвольная глубина
 - **stage** (id, company_id, contract_id, name, ...)
 - **estimate** (id, company_id, stage_id, name, ...) — привязка к этапу (уровень «подраздел этапа» упразднён 2026-10-20)
-- **estimate_version** (id, estimate_id, version_no, is_active, calculated_at, ...) — ровно одна is_active
-- **estimate_item** (id, estimate_version_id, row_ref, material_work, unit_orig, qty, section, rate_catalog_id?, **rate_snapshot_id**, **unit_snapshot**, **rate_amount_snapshot**, confidence, status, ...)
+- **estimate_version** (id, estimate_id, version_no, is_active, calculated_at, **total_cost**, ...) — ровно одна is_active
+- **estimate_item** (id, estimate_version_id, row_ref, material_work, unit_orig, qty, section, rate_catalog_id?, **rate_snapshot_id**, **unit_snapshot**, **rate_amount_snapshot**, confidence, status, **cost**, ...)
 - **rate_catalog** (id, company_id, current_version_id, ...)
 - **rate_catalog_version** (id, rate_catalog_id, version, imported_at, source_file_hash, ...)
 - **file** (id, storage_key, mime_type, size, meta)
@@ -197,7 +195,7 @@ flowchart LR
 2. pdf-extract → текст
 3. llm-spec (через llm-gateway local-first) → черновик спецификации
 4. mapping-service → предложения маппинга с confidence
-5. calc-service (детерминированный) → расчёт при валидированных/подтверждённых сопоставлениях
+5. estimate (детерминированный) → расчёт при валидированных/подтверждённых сопоставлениях
 
 **Инвариант конвейера:** шаги 3–4 используют llm-gateway только в режиме local-first; cloud-fallback — исключительно при включённом флаге + structure_only + аудит.
 
@@ -207,7 +205,7 @@ flowchart LR
 | --- | --- | --- |
 | Извлечение PDF → LLM → маппинг (Epic 1) | pdf-extract, llm-gateway, mapping-service | AD-003, AD-004, AD-005 |
 | Аутентификация, компании, иерархия договоров (Epic 2) | api-gateway, auth-users, company-org | AD-010, AD-011, AD-012, AD-013, AD-014, AD-015 |
-| Справочник расценок, сметы, расчёт (Epic 3–5) | rate-catalog, estimate, calc-service | AD-001, AD-002, AD-007, AD-008 |
+| Справочник расценок, сметы, расчёт (Epic 3–5) | rate-catalog, estimate | AD-001, AD-002, AD-007, AD-008 |
 | Границы и топология | все сервисы + deploy | AD-009, AD-011, AD-014 |
 
 ## NFR-проверяемые цели

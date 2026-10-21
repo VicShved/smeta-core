@@ -34,12 +34,12 @@ C4Container
   Container(gw, "api-gateway", "FastAPI", "Единственная точка входа; проверка JWT; identity-заголовки")
   Container(auth, "auth-users", "FastAPI", "Выпуск JWT; users и credentials")
   Container(org, "company-org", "FastAPI", "Компании, договоры, этапы")
-  Container(est, "estimate", "FastAPI", "Сметы и версии со снапшотами")
+  Container(est, "estimate", "FastAPI", "Сметы, версии со снапшотами и детерминированный расчёт")
   Container(cat, "rate-catalog", "FastAPI", "Импорт .xlsx, маппер колонок, версии справочника")
   Container(pdf, "pdf-extract", "FastAPI", "PDF с текстовым слоем → текст")
   Container(map, "mapping-service", "FastAPI", "Сопоставление позиций, confidence")
   Container(llm, "llm-gateway", "FastAPI", "Локальная CPU-only LLM; cloud-fallback с аудитом")
-  Container(calc, "calc-service", "FastAPI", "Детерминированный расчёт стоимости")
+  Container(calc, "calc-service", "FastAPI", "Каркас сервиса расчёта")
   ContainerDb(db, "PostgreSQL", "Один инстанс; отдельная база на сервис")
   ContainerDb(s3, "MinIO", "PDF и импортированные .xlsx")
 
@@ -51,10 +51,8 @@ C4Container
   Rel(gw, cat, "REST + identity-заголовки")
   Rel(gw, pdf, "REST + identity-заголовки")
   Rel(gw, map, "REST + identity-заголовки")
-  Rel(gw, calc, "REST + identity-заголовки")
   Rel(pdf, llm, "REST")
   Rel(map, llm, "REST")
-  Rel(est, calc, "REST")
   Rel(est, cat, "REST")
   Rel(pdf, s3, "S3")
   Rel(cat, s3, "S3")
@@ -72,12 +70,12 @@ C4Container
 | api-gateway | Маршрутизация, проверка JWT, установка identity-заголовков | `smeta/api-gateway/` |
 | auth-users | Пользователи, credentials, выпуск JWT | `smeta/auth-users/` |
 | company-org | Компании, договоры (adjacency list), этапы | `smeta/company-org/` |
-| estimate | Сметы, версии (активная ровно одна), позиции со снапшотами | `smeta/estimate/` |
+| estimate | Сметы, версии (активная ровно одна), позиции со снапшотами, детерминированный расчёт стоимости | `smeta/estimate/` |
 | rate-catalog | Импорт справочника из `.xlsx`, версии и хранение | `smeta/rate-catalog/` |
 | pdf-extract | PDF с текстовым слоем → текст; валидация цифрового PDF | `smeta/pdf-extract/` |
 | mapping-service | Сопоставление позиций со справочником, confidence (0–1) | `smeta/mapping-service/` |
 | llm-gateway | Локальная LLM (CPU-only, GGUF q2–q3), cloud-fallback + аудит | `smeta/llm-gateway/` |
-| calc-service | Детерминированный расчёт детальной и итоговой стоимости | `smeta/calc-service/` |
+| calc-service | Каркас сервиса расчёта; детерминированный расчёт выполняет `estimate` | `smeta/calc-service/` |
 | ui | Веб-интерфейс MVP (Vue) | `smeta/ui/` |
 | deploy | `docker-compose.yml`, ресурсы, будущий k8s | `smeta/deploy/` |
 

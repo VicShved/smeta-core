@@ -40,6 +40,8 @@
 - source_spec: none
   summary: Story 3.3 «Snapshot расценок в позициях смет» отложена до появления фундамента Epic 6 (estimate-модели/версии/позиции и детерминированный расчёт).
   evidence: `estimate` и `calc-service` — каркасы только с `/health`: нет моделей `estimate`/`estimate_version`/`estimate_item`, миграций, БД `estimate` в compose и API; у rate-catalog нет чтения строк версии. AC «позиции сохраняют snapshot при расчёте» и «повторный расчёт» проверить нечем. Решение владельца (2026-10-20): отложить до Epic 6; при возврате учесть, что позиции принадлежат estimate, а rate-catalog должен отдавать неизменяемые расценки версии по API (AD-014 запрещает прямое чтение чужой БД).
+  status: resolved
+  resolved_by: `_bmad-output/implementation-artifacts/spec-6-3-детерминированный-расчёт-стоимости.md` (2026-10-21)
 
 ## Deferred from: code review of spec-4-1-загрузка-цифрового-pdf-в-minio-с-валидацией.md (2026-10-20)
 
@@ -111,3 +113,18 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-6-1-создание-сметы-и-версий-ровно-одна-активная.md`
   summary: Dockerfile estimate ставит зависимости через `pip install .`, игнорируя `uv.lock`; сборка не воспроизводима по lock-файлу.
   evidence: Тот же паттерн у rate-catalog/pdf-extract; воспроизводимость сборки — pre-existing инфра-задача, уже отмеченная в deferred-work по Story 4.1.
+
+## Deferred from: code review of spec-6-3-детерминированный-расчёт-стоимости.md (2026-10-21)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-6-3-детерминированный-расчёт-стоимости.md`
+  summary: Расчёт версии делает до 1000 последовательных HTTP-вызовов к rate-catalog (по одному на уникальную расценку) внутри открытой транзакции.
+  evidence: `estimate/app/application/calculate_cost.py` разрешает расценки поштучно через `GET /v1/rate-catalog/rates/{id}`; батч-эндпоинта и общего дедлайна нет, таймаут клиента 10 с на запрос. Нужен батч-endpoint в rate-catalog либо лимит/дедлайн на расчёт.
+- source_spec: `_bmad-output/implementation-artifacts/spec-6-3-детерминированный-расчёт-стоимости.md`
+  summary: Запись результата расчёта идёт построчно (SELECT с двумя JOIN'ами + UPDATE на каждую позицию) — до 1000 итераций с flush.
+  evidence: `estimate/app/infrastructure/repository.py::update_item_snapshot_and_cost`; на объёмах MVP (100–500 позиций) приемлемо, но при росте нужны bulk-обновления.
+- source_spec: `_bmad-output/implementation-artifacts/spec-6-3-детерминированный-расчёт-стоимости.md`
+  summary: Расчёт не оставляет след об акторе: `X-User-Id` не читается, у версии нет `calculated_by`.
+  evidence: `estimate/app/transport/routes.py` принимает только `X-Company-Id`; смета хранит `created_by`, версия — нет. Нужна колонка `calculated_by` и её заполнение.
+- source_spec: `_bmad-output/implementation-artifacts/spec-6-3-детерминированный-расчёт-стоимости.md`
+  summary: Нет переноса подтверждённых позиций в новую версию сметы: импорт 5.3 создаёт позиции в статусе `proposed`, поэтому подтверждения и скорректированная ЕИ теряются.
+  evidence: `estimate/app/application/import_items.py` всегда создаёт `status=proposed`; новые цены по README требуют новой версии и повторного подтверждения всех позиций. Нужна операция копирования позиций с сохранением статусов.
