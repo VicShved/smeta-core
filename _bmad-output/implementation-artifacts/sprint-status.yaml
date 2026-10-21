@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 15:57'
+last_updated: '10-21-2026 16:18'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -121,21 +121,21 @@ action_items:
     action: "Проверять size/hash объекта при extract или зафиксировать модель tamper;
       убрать тест, принимающий подменённый объект"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-12-унифицировать-ошибки-storage-put-и-get-5"
     epic: 4
     action: "Унифицировать ошибки storage: put и get -> 502/503 problem+json; покрыть
       тестом"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-13-вынести-fakestorage-миграции-pdf-фикстур"
     epic: 4
     action: "Вынести FakeStorage, миграции, PDF-фикстуры и HTTP-хелперы в tests/conftest.py;
       один production-composition тест"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-14-определить-переход-story-review-done-пос"
     epic: 4
@@ -150,13 +150,13 @@ action_items:
     action: "Ввести MAX_PAGES/MAX_CHARS для extract или подтвердить отсутствие лимита;
       связать с отложенным пунктом 4.1"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-16-принимать-pdf-в-первых-1024-байтах-и-ост"
     epic: 4
     action: "Принимать %PDF- в первых 1024 байтах и оставлять финальную проверку парсеру"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-17-закрывать-pdfpage-при-исключении-get_tex"
     epic: 4
