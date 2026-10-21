@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 16:47'
+last_updated: '10-21-2026 17:17'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -100,7 +100,7 @@ action_items:
     action: "Получить 2-3 реальных PDF ГРАНД/АВК с эталонным текстом и измерять фактическое
       покрытие >=95%; иначе согласовать пересмотр AC"
     owner: "Shved"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-9-добавить-postgres-и-minio-сервисы-в-ci-p"
     epic: 4
@@ -170,7 +170,7 @@ action_items:
     action: "Добавить контрактный тест upload -> extract на PDF, который проходит
       pypdfium2, но падает или пуст в pdfplumber"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-7-retro-item-1-обогащение-items-не-ломает-ручную-проверку"
     epic: 7
