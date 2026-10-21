@@ -41,7 +41,7 @@ development_status:
   6-3-детерминированный-расчёт-стоимости: done
   epic-6-retrospective: optional
 
-  epic-7: in-progress
+  epic-7: done
   7-1a-ui-вход-и-дерево-смет: done
   7-1b-ui-загрузка-pdf-и-статусы-обработки: done
   7-2-просмотр-спецификации-маппинга-и-стоимости: done
@@ -93,7 +93,7 @@ action_items:
     action: "Ввести per-route timeout >=30с для /v1/files или асинхронный extract
       (202 + статус); покрыть E2E PDF 5 МиБ / 500 страниц"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-8-получить-2-3-реальных-pdf-гранд-авк-с-эт"
     epic: 4
