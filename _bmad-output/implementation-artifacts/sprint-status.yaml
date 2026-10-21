@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 16:24'
+last_updated: '10-21-2026 16:26'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -80,7 +80,7 @@ action_items:
     action: "Добавить postgres service-контейнер в CI company-org и auth-users и прогонять
       тесты/миграции на PostgreSQL (или compose-smoke в deploy-CI)"
     owner: "Shved"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-10-20-2026.md"
   - id: "epic-2-retro-item-6-кэшировать-make_session_factory-lru_cach"
     epic: 2
@@ -107,7 +107,7 @@ action_items:
     action: "Добавить Postgres и MinIO сервисы в CI pdf-extract и compose-smoke upload
       -> extract -> get; закрыть epic-2-retro-item-5"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-10-сделать-один-engine-sessionmaker-и-один"
     epic: 4
