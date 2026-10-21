@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 17:30'
+last_updated: '10-21-2026 17:31'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -278,7 +278,7 @@ action_items:
     action: "Переписать AC 3.3 в epics.md: заморозка рассчитанной версии вместо явного
       выбора версии справочника"
     owner: "Shved"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-3-retro-10-21-2026.md"
   - id: "epic-3-retro-item-34-ci-rate-catalog-на-реальных-postgres-и-m"
     epic: 3
