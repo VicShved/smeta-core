@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 02:10'
+last_updated: '10-21-2026 03:05'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -38,7 +38,7 @@ development_status:
   epic-6: in-progress
   6-1-создание-сметы-и-версий-ровно-одна-активная: review
   6-2-готовность-к-diff-между-версиями: done
-  6-3-детерминированный-расчёт-стоимости: review
+  6-3-детерминированный-расчёт-стоимости: done
   epic-6-retrospective: optional
 
   epic-7: backlog
@@ -138,10 +138,11 @@ action_items:
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-14-определить-переход-story-review-done-пос"
     epic: 4
-    action: "Определить переход story review -> done после approve (walkthrough обновляет
-      sprint-status или step-05 ставит done)"
+    action: "Переход story review -> done определён: после одобрения на bmad-walkthrough
+      история переводится в done (build ставит review, walkthrough-одобрение снимает review);
+      подтверждено на 6.2 и 6.3"
     owner: "Shved"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
   - id: "epic-4-retro-item-15-ввести-max_pages-max_chars-для-extract-и"
     epic: 4
