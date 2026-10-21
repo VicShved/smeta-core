@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 06:50'
+last_updated: '10-21-2026 14:17'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -45,7 +45,7 @@ development_status:
   7-1a-ui-вход-и-дерево-смет: done
   7-1b-ui-загрузка-pdf-и-статусы-обработки: done
   7-2-просмотр-спецификации-маппинга-и-стоимости: done
-  epic-7-retrospective: optional
+  epic-7-retrospective: done
 action_items:
   - id: "retro-epic1-1"
     epic: 1
@@ -140,8 +140,8 @@ action_items:
   - id: "epic-4-retro-item-14-определить-переход-story-review-done-пос"
     epic: 4
     action: "Переход story review -> done определён: после одобрения на bmad-walkthrough
-      история переводится в done (build ставит review, walkthrough-одобрение снимает review);
-      подтверждено на 6.2 и 6.3"
+      история переводится в done (build ставит review, walkthrough-одобрение снимает
+      review); подтверждено на 6.2 и 6.3"
     owner: "Shved"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
@@ -172,3 +172,97 @@ action_items:
     owner: "dev"
     status: open
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-10-20-2026.md"
+  - id: "epic-7-retro-item-1-обогащение-items-не-ломает-ручную-проверку"
+    epic: 7
+    action: "estimate: обогащение позиций справочником не должно ронять общий маршрут
+      GET .../items — сделать необязательным, деградация — пустые rate_code/rate_name
+      с признаком в ответе"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-2-единая-семантика-404-в-http-клиентах"
+    epic: 7
+    action: "estimate: единый хелпер «404 = ресурса нет, иначе недоступность» в трёх
+      HTTP-клиентах; различать 422 (нарушение контракта) и 5xx в пакете расценок"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-3-сессия-бд-не-удерживается-во-время-http"
+    epic: 7
+    action: "estimate: вынести сетевые вызовы (processing_status, list_items) за пределы
+      сессии БД — один пункт вместо двух отложенных в 7.1b и 7.2"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-4-сброс-состояния-загрузки-при-смене-этапа"
+    epic: 7
+    action: "ui: сбрасывать состояние частичной загрузки при смене этапа (EstimateUpload
+      без key), чтобы файл из прошлого этапа не привязывался к смете другого этапа"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-5-цена-снапшота-как-пришла-от-api"
+    epic: 7
+    action: "ui: показывать цену снапшота как пришла от API либо явно помечать округление;
+      тест на граничные значения 99.999 и 12.3456"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-6-retry-items-сохраняет-страницы"
+    epic: 7
+    action: "ui: retry_items перезапрашивает текущую страницу, а не сбрасывает список
+      с первой"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-7-тесты-восстановления-ui"
+    epic: 7
+    action: "ui: закрепить тестами «Обновить» после лимита опроса, ошибку извлечения,
+      правило can_extract, повтор загрузки позиций, переход между сметами, неразрушение
+      route без токена"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-8-per-route-timeout-для-v1-files"
+    epic: 7
+    action: "api-gateway: per-route timeout для /v1/files (>=120 с) через env — закрывает
+      таймаут загрузки PDF в UI и пункт epic-4-retro-item-7"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-9-manifest-ui-и-ci-npm-ci"
+    epic: 7
+    action: "ui: актуализировать package.json (описание на все три истории Epic 7)
+      и CI (npm ci без || npm install)"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-10-тест-ответов-импорта-без-обогащения"
+    epic: 7
+    action: "estimate: тест — ответы импорта позиций и ручной проверки не содержат
+      rate_code/rate_name (обогащение только на пути просмотра)"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-11-цель-эпика-7-не-достигнута"
+    epic: 7
+    action: "Решить разрыв цели Epic 7 («UI доводит обработку до конца» — фактически
+      только загрузка и извлечение): переписать цель в epic-7-context.md либо запланировать
+      историю «UI запускает маппинг и расчёт» с прокси /v1/spec в api-gateway"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-12-браузерный-e2e-прогон-ui"
+    epic: 7
+    action: "Отдельная история: браузерный e2e-прогон ключевого пути UI (вход → дерево
+      → загрузка → панель стадий → экран сметы) — Epic 7 покрыт только jsdom-тестами"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-7-retro-item-13-тест-закрытия-страницы-pdf"
+    epic: 7
+    action: "pdf-extract: регрессионный тест на закрытие нативной страницы PDF при
+      исключении в get_textpage() — код уже исправлен, закрывает остаток epic-4-retro-item-17"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
