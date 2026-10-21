@@ -151,3 +151,5 @@ context:
 - Alembic на реальном Postgres 18.6 (`smeta1-postgres`, временная БД `rate_catalog_check`): `POSTGRES_DSN=... alembic upgrade head` → версия `0001`; `alembic check` → `No new upgrade operations detected` (модели и миграция совпадают); временная БД удалена
 
 **Не покрыто автоматически:** импорт против реального Postgres/MinIO (тесты используют sqlite и fake-storage); smoke через `docker compose up` не запускался.
+
+**Walkthrough (2026-10-21):** approved — дизайн, риск-карта и ручные наблюдения приняты; статус истории переведён в `done`.
