@@ -30,7 +30,7 @@ development_status:
   epic-4-retrospective: done
 
   epic-5: in-progress
-  5-1-llm-извлечение-спецификации-local-first: review
+  5-1-llm-извлечение-спецификации-local-first: done
   5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence: done
   5-3-api-ручной-проверки-маппинга: done
   epic-5-retrospective: optional
