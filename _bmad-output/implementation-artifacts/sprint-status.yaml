@@ -18,24 +18,24 @@ development_status:
   2-3-этапы-договора: done
   epic-2-retrospective: done
 
-  epic-3: in-progress
+  epic-3: done
   3-1-импорт-справочника-из-excel-с-маппером-колонок: done
   3-2-версионирование-справочника: done
   3-3-snapshot-расценок-в-позициях-смет: done
   epic-3-retrospective: optional
 
-  epic-4: in-progress
+  epic-4: done
   4-1-загрузка-цифрового-pdf-в-minio-с-валидацией: done
   4-2-конвертация-pdf-текст-без-ocr: done
   epic-4-retrospective: done
 
-  epic-5: in-progress
+  epic-5: done
   5-1-llm-извлечение-спецификации-local-first: done
   5-2-маппинг-со-справочником-и-нормализация-еи-с-confidence: done
   5-3-api-ручной-проверки-маппинга: done
   epic-5-retrospective: optional
 
-  epic-6: in-progress
+  epic-6: done
   6-1-создание-сметы-и-версий-ровно-одна-активная: done
   6-2-готовность-к-diff-между-версиями: done
   6-3-детерминированный-расчёт-стоимости: done
