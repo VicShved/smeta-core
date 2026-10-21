@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 17:17'
+last_updated: '10-21-2026 17:22'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -22,7 +22,7 @@ development_status:
   3-1-импорт-справочника-из-excel-с-маппером-колонок: done
   3-2-версионирование-справочника: done
   3-3-snapshot-расценок-в-позициях-смет: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
   epic-4: done
   4-1-загрузка-цифрового-pdf-в-minio-с-валидацией: done
@@ -266,3 +266,31 @@ action_items:
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-21-2026.md"
+  - id: "epic-3-retro-item-32-зафиксировать-story-3-3-пост-фактум-спек"
+    epic: 3
+    action: "Зафиксировать Story 3.3 пост-фактум: спека и контракт снапшотов в позициях
+      сметы, проверка AC эпика"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-3-retro-10-21-2026.md"
+  - id: "epic-3-retro-item-33-переписать-ac-3-3-в-epics-md-заморозка-р"
+    epic: 3
+    action: "Переписать AC 3.3 в epics.md: заморозка рассчитанной версии вместо явного
+      выбора версии справочника"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-3-retro-10-21-2026.md"
+  - id: "epic-3-retro-item-34-ci-rate-catalog-на-реальных-postgres-и-m"
+    epic: 3
+    action: "CI rate-catalog на реальных Postgres и MinIO: сервис-контейнеры, миграции
+      и smoke импорта"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-3-retro-10-21-2026.md"
+  - id: "epic-3-retro-item-35-тест-неизменяемости-расчёт-сметы-импорт"
+    epic: 3
+    action: "Тест неизменяемости: расчёт сметы, импорт новой версии справочника, итог
+      и снапшоты не изменились"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-3-retro-10-21-2026.md"
