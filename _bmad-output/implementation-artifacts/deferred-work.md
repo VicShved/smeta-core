@@ -146,6 +146,8 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
   summary: В UI не настроен CSP — при токене в `localStorage` это оставляет основной вектор кражи токена.
   evidence: `ui/nginx.conf` добавляет `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, но без `Content-Security-Policy`: у SPA есть встроенные стили и динамические импорты, слепой CSP сломал бы сборку. Нужен отдельный проход с проверкой сборки под строгим CSP.
+  status: resolved
+  resolved_by: `ui/nginx.conf` (2026-10-21) — CSP с `script-src 'self'`, `connect-src 'self'`, `style-src 'self' 'unsafe-inline'`; проверено сборкой, e2e и отсутствием console-errors.
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-1a-ui-вход-и-дерево-смет.md`
   summary: `GET /v1/estimates?stage_id=` считает `total` и `items` двумя запросами — при записи между ними счётчик и список могут разойтись.
   evidence: `estimate/app/infrastructure/repository.py` — `count_by_stage` и `list_by_stage`; на объёмах MVP (десятки смет на этап) расхождение маловероятно, но пагинация показывается пользователю. Исправляется одним запросом с `COUNT(*) OVER ()`.
