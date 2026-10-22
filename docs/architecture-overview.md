@@ -38,10 +38,13 @@ C4Container
   Container(cat, "rate-catalog", "FastAPI", "Импорт .xlsx, маппер колонок, версии справочника")
   Container(pdf, "pdf-extract", "FastAPI", "PDF с текстовым слоем → текст")
   Container(map, "mapping-service", "FastAPI", "Сопоставление позиций, confidence")
-  Container(llm, "llm-gateway", "FastAPI", "Локальная CPU-only LLM; cloud-fallback с аудитом")
+  Container(spec, "spec-service", "FastAPI", "Извлечение позиций спецификации через llm-proxy; JSON в MinIO")
+  Container(proxy, "llm-proxy", "FastAPI", "OpenAI-совместимый роутер: alias model → локальный/облачный backend")
+  Container(llm, "llm-gateway", "FastAPI", "Локальная CPU-only LLM с OpenAI API")
   Container(calc, "calc-service", "FastAPI", "Каркас сервиса расчёта")
   ContainerDb(db, "PostgreSQL", "Один инстанс; отдельная база на сервис")
-  ContainerDb(s3, "MinIO", "PDF и импортированные .xlsx")
+  ContainerDb(s3, "MinIO", "PDF, импортированные .xlsx и модели")
+  System_Ext(cloud, "Cloud LLM API", "OpenAI-compatible (опционально)")
 
   Rel(user, ui, "использует", "HTTPS")
   Rel(ui, gw, "REST", "HTTPS")
@@ -51,10 +54,16 @@ C4Container
   Rel(gw, cat, "REST + identity-заголовки")
   Rel(gw, pdf, "REST + identity-заголовки")
   Rel(gw, map, "REST + identity-заголовки")
-  Rel(pdf, llm, "REST")
-  Rel(map, llm, "REST")
+  Rel(gw, spec, "REST + identity-заголовки")
+  Rel(spec, pdf, "REST: текст по file_id")
+  Rel(spec, proxy, "REST (OpenAI Chat Completions)")
+  Rel(proxy, llm, "REST: локальный backend")
+  Rel(proxy, cloud, "REST: облачный backend (опционально)")
+  Rel(spec, map, "REST: file_id + positions")
+  Rel(spec, db, "SQL: spec_job")
   Rel(est, cat, "REST")
   Rel(pdf, s3, "S3")
+  Rel(spec, s3, "S3: specification.json")
   Rel(cat, s3, "S3")
   Rel(auth, db, "SQL")
   Rel(org, db, "SQL")
@@ -74,7 +83,9 @@ C4Container
 | rate-catalog | Импорт справочника из `.xlsx`, версии и хранение | `smeta/rate-catalog/` |
 | pdf-extract | PDF с текстовым слоем → текст; валидация цифрового PDF | `smeta/pdf-extract/` |
 | mapping-service | Сопоставление позиций со справочником, confidence (0–1) | `smeta/mapping-service/` |
-| llm-gateway | Локальная LLM (CPU-only, GGUF q2–q3), cloud-fallback + аудит | `smeta/llm-gateway/` |
+| spec-service | Асинхронная оркестрация по `file_id` (очередь в Postgres): текст из pdf-extract, извлечение через llm-proxy, маппинг, `specification.json`/`mapping.json` рядом с PDF, INFO-логи этапов | `smeta/spec-service/` |
+| llm-proxy | OpenAI-совместимый роутер: alias model → локальный/облачный backend, fallback, аудит облака | `smeta/llm-proxy/` |
+| llm-gateway | Локальная LLM (CPU-only, GGUF q2–q3), OpenAI API | `smeta/llm-gateway/` |
 | calc-service | Каркас сервиса расчёта; детерминированный расчёт выполняет `estimate` | `smeta/calc-service/` |
 | ui | Веб-интерфейс MVP (Vue) | `smeta/ui/` |
 | deploy | `docker-compose.yml`, ресурсы, будущий k8s | `smeta/deploy/` |

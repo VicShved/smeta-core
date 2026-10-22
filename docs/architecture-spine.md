@@ -8,7 +8,7 @@ scope: 'инварианты, удерживающие сервисы smeta1 и 
 status: final
 created: 2026-10-17
 updated: 2026-10-21
-binds: ['api-gateway', 'auth-users', 'company-org', 'estimate', 'pdf-extract', 'llm-gateway', 'mapping-service', 'rate-catalog', 'calc-service', 'ui', 'deploy']
+binds: ['api-gateway', 'auth-users', 'company-org', 'estimate', 'pdf-extract', 'llm-gateway', 'llm-proxy', 'spec-service', 'mapping-service', 'rate-catalog', 'calc-service', 'ui', 'deploy']
 sources: []
 companions: []
 ---
@@ -42,9 +42,9 @@ flowchart TD
 - **Rule:** При расчёте версии сметы сохраняются `rate_snapshot_id`, `unit_snapshot`, `rate_amount_snapshot`. Изменение текущей версии rate_catalog не влияет на уже существующие версии смет. Поле `rate_catalog_id` — провенанс: по нему при первом расчёте захватывается снапшот строки расценки; в формулах участвует `rate_amount_snapshot`.
 
 ### AD-003: Гибрид LLM с редукцией данных
-- **Binds:** llm-gateway, pdf-extract, mapping-service
+- **Binds:** llm-gateway, llm-proxy, spec-service, pdf-extract, mapping-service
 - **Prevents:** утечка наименований/количеств/ЕИ во внешнюю LLM
-- **Rule:** `llm.allow_cloud_fallback = false` (по умолчанию). `llm.redaction_mode = structure_only`. Во внешнюю LLM передаются только структурно-анонимизированные фрагменты (типы полей, схема, без значений). Включение только с явным согласием + аудит событий (timestamp, инициатор, причина, объём структурных блоков).
+- **Rule:** `llm.allow_cloud_fallback = false` (по умолчанию). Для `llm-gateway` `llm.redaction_mode = structure_only`, во внешнюю LLM передаются только структурно-анонимизированные фрагменты. Включение только с явным согласием + аудит. Решение 2026-10-22: облачные маршруты `llm-proxy` разрешены при `LLM_ALLOW_CLOUD_FALLBACK=true` и `X-Allow-Cloud: true` с аудитом, payload без `structure_only` — осознанное исключение для chat-трафика.
 
 ### AD-004: CPU-only локальная LLM
 - **Binds:** llm-gateway (local runtime)
@@ -72,7 +72,7 @@ flowchart TD
 - **Rule:** Импорт только из **.xlsx**. Реализуется **маппер колонок** (наименование, ЕИ, цена/расценка и др.). Каждая успешная загрузка создаёт новую версию справочника.
 
 ### AD-009: Поли-репозиторная топология
-- **Binds:** все сервисы (api-gateway, auth-users, company-org, estimate, pdf-extract, llm-gateway, mapping-service, rate-catalog, calc-service, ui) + deploy
+- **Binds:** все сервисы (api-gateway, auth-users, company-org, estimate, pdf-extract, llm-gateway, llm-proxy, spec-service, mapping-service, rate-catalog, calc-service, ui) + deploy
 - **Prevents:** спонтанный монорепо-код, скрытое переиспользование кода между сервисами без явного контракта, рассинхрон версий shared-lib
 - **Rule:** Каждый сервис — **самодостаточная папка/репозиторий** в дереве `smeta/<service>/`, общий инфраструктурный деплой — отдельной папкой `smeta/deploy/` (docker-compose + k8s). Shared-lib на старте **не вводится**; общие контракты между сервисами — только через API-схемы и сообщения (версионируемые, единый владелец). Git-инициализация и remote — отдельным шагом (локальные папки созданы заранее).
 
@@ -112,7 +112,9 @@ flowchart TD
 - **company-org** — компании, договоры (adjacency list, произвольная глубина), этапы
 - **estimate** — сметы, версии (активная ровно одна), позиции (со снапшотами), **детерминированный расчёт стоимости**
 - **pdf-extract** — PDF→текст (pdfplumber/pypdfium2), валидация цифрового PDF
-- **llm-gateway** — local (CPU-only, GGUF q2–q3) + cloud (только structure_only + аудит + allow_cloud_fallback)
+- **llm-gateway** — OpenAI-совместимый инференс local (CPU-only, GGUF q2–q3) + cloud (только structure_only + аудит + allow_cloud_fallback)
+- **llm-proxy** — OpenAI-совместимый роутер по alias `model`: локальный llm-gateway или облачный backend, fallback, аудит облачных вызовов
+- **spec-service** — асинхронная оркестрация по `file_id`: очередь задач в Postgres, текст из pdf-extract, извлечение через llm-proxy, маппинг, `specification.json`/`mapping.json` в папке PDF, INFO-логи этапов
 - **mapping-service** — сопоставление позиций со справочником, нормализация ЕИ, **confidence** (0–1), пометка <0.70
 - **rate-catalog** — импорт Excel (.xlsx), маппер колонок, версии, хранение
 - **calc-service** — каркас сервиса расчёта; детерминированный расчёт выполняет `estimate` (решение владельца 2026-10-20)
@@ -162,8 +164,14 @@ flowchart LR
   gw --> cat["rate-catalog"]
   gw --> pdf["pdf-extract"]
   gw --> map["mapping-service"]
-  pdf --> llm["llm-gateway"]
-  map --> llm
+  gw --> spec["spec-service"]
+  spec --> pdf
+  spec --> proxy["llm-proxy"]
+  proxy --> llm["llm-gateway"]
+  proxy --> cloud["Cloud LLM (optional)"]
+  spec --> map
+  spec --> s3[("MinIO")]
+  spec --> pg
   est --> cat
   est --> s3[("MinIO")]
   pdf --> s3
@@ -193,17 +201,17 @@ flowchart LR
 ## Конвейер обработки
 1. Загрузка PDF → s3/minio (валидация цифрового)
 2. pdf-extract → текст
-3. llm-spec (через llm-gateway local-first) → черновик спецификации
+3. spec-service → llm-proxy (OpenAI local-first) → llm-gateway/cloud → черновик спецификации; spec-service → mapping-service
 4. mapping-service → предложения маппинга с confidence
 5. estimate (детерминированный) → расчёт при валидированных/подтверждённых сопоставлениях
 
-**Инвариант конвейера:** шаги 3–4 используют llm-gateway только в режиме local-first; cloud-fallback — исключительно при включённом флаге + structure_only + аудит.
+**Инвариант конвейера:** шаг 3 использует llm-proxy поверх локального llm-gateway; облачные маршруты — только при явном согласии + аудит (решение 2026-10-22, без structure_only).
 
 ## Capability → Architecture Map
 
 | Capability / Area | Lives in | Governed by |
 | --- | --- | --- |
-| Извлечение PDF → LLM → маппинг (Epic 1) | pdf-extract, llm-gateway, mapping-service | AD-003, AD-004, AD-005 |
+| Извлечение PDF → LLM → маппинг (Epic 1) | pdf-extract, spec-service, llm-proxy, llm-gateway, mapping-service | AD-003, AD-004, AD-005 |
 | Аутентификация, компании, иерархия договоров (Epic 2) | api-gateway, auth-users, company-org | AD-010, AD-011, AD-012, AD-013, AD-014, AD-015 |
 | Справочник расценок, сметы, расчёт (Epic 3–5) | rate-catalog, estimate | AD-001, AD-002, AD-007, AD-008 |
 | Границы и топология | все сервисы + deploy | AD-009, AD-011, AD-014 |
