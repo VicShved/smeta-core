@@ -7,7 +7,7 @@ paradigm: 'DDD-границы + service-per-capability, hexagonal (ports & adapt
 scope: 'инварианты, удерживающие сервисы smeta1 и инфраструктуру деплоя от расхождений'
 status: final
 created: 2026-10-17
-updated: 2026-10-21
+updated: 2026-10-22
 binds: ['api-gateway', 'auth-users', 'company-org', 'estimate', 'pdf-extract', 'llm-gateway', 'llm-proxy', 'spec-service', 'mapping-service', 'rate-catalog', 'calc-service', 'ui', 'deploy']
 sources: []
 companions: []
@@ -44,7 +44,7 @@ flowchart TD
 ### AD-003: Гибрид LLM с редукцией данных
 - **Binds:** llm-gateway, llm-proxy, spec-service, pdf-extract, mapping-service
 - **Prevents:** утечка наименований/количеств/ЕИ во внешнюю LLM
-- **Rule:** `llm.allow_cloud_fallback = false` (по умолчанию). Для `llm-gateway` `llm.redaction_mode = structure_only`, во внешнюю LLM передаются только структурно-анонимизированные фрагменты. Включение только с явным согласием + аудит. Решение 2026-10-22: облачные маршруты `llm-proxy` разрешены при `LLM_ALLOW_CLOUD_FALLBACK=true` и `X-Allow-Cloud: true` с аудитом, payload без `structure_only` — осознанное исключение для chat-трафика.
+- **Rule:** `llm.allow_cloud_fallback = false` (по умолчанию). Для `llm-gateway` `llm.redaction_mode = structure_only`, во внешнюю LLM передаются только структурно-анонимизированные фрагменты. Включение только с явным согласием + аудит. Решение 2026-10-22: облачные маршруты `llm-proxy` разрешены при `LLM_ALLOW_CLOUD_FALLBACK=true` и `X-Allow-Cloud: true` с аудитом, payload без `structure_only` — осознанное исключение для chat-трафика. Каталог провайдеров/моделей и активная модель компании хранятся в `spec_service` (`llm_provider`, `llm_model`, `company_llm_setting`); в БД только имя `api_key_env`, значения ключей — в env `llm-proxy`. Эффективная конфигурация передаётся в `llm-proxy` по внутреннему API (`PUT /internal/config`, startup pull), защищённому `LLM_INTERNAL_TOKEN`. Облачная модель дополнительно требует `LLM_ALLOW_CLOUD=true` в `spec-service`.
 
 ### AD-004: CPU-only локальная LLM
 - **Binds:** llm-gateway (local runtime)
@@ -114,7 +114,7 @@ flowchart TD
 - **pdf-extract** — PDF→текст (pdfplumber/pypdfium2), валидация цифрового PDF
 - **llm-gateway** — OpenAI-совместимый инференс local (CPU-only, GGUF q2–q3) + cloud (только structure_only + аудит + allow_cloud_fallback)
 - **llm-proxy** — OpenAI-совместимый роутер по alias `model`: локальный llm-gateway или облачный backend, fallback, аудит облачных вызовов
-- **spec-service** — асинхронная оркестрация по `file_id`: очередь задач в Postgres, текст из pdf-extract, извлечение через llm-proxy, маппинг, `specification.json`/`mapping.json` в папке PDF, INFO-логи этапов
+- **spec-service** — асинхронная оркестрация по `file_id`: очередь задач в Postgres, каталог LLM-провайдеров/моделей и активная модель компании, публикация конфигурации в llm-proxy, текст из pdf-extract, извлечение через llm-proxy, опциональный маппинг, `specification.json`/`mapping.json` в папке PDF, INFO-логи этапов
 - **mapping-service** — сопоставление позиций со справочником, нормализация ЕИ, **confidence** (0–1), пометка <0.70
 - **rate-catalog** — импорт Excel (.xlsx), маппер колонок, версии, хранение
 - **calc-service** — каркас сервиса расчёта; детерминированный расчёт выполняет `estimate` (решение владельца 2026-10-20)
@@ -201,7 +201,7 @@ flowchart LR
 ## Конвейер обработки
 1. Загрузка PDF → s3/minio (валидация цифрового)
 2. pdf-extract → текст
-3. spec-service → llm-proxy (OpenAI local-first) → llm-gateway/cloud → черновик спецификации; spec-service → mapping-service
+3. spec-service → llm-proxy (OpenAI local-first; каталог провайдеров/моделей и runtime-конфиг из API) → llm-gateway/cloud → черновик спецификации; spec-service → mapping-service (опционально)
 4. mapping-service → предложения маппинга с confidence
 5. estimate (детерминированный) → расчёт при валидированных/подтверждённых сопоставлениях
 

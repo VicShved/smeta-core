@@ -205,3 +205,15 @@
 ## Принятые ограничения: идемпотентность создания (решение 2026-10-21)
 
 - `POST /v1/estimates` и `POST /v1/estimates/{id}/versions` не идемпотентны: повтор после сетевого сбоя создаёт вторую смету/версию. UI компенсирует это сохранением созданных id (`ui/src/components/EstimateUpload.vue`), внешних клиентов пока нет. `Idempotency-Key` вводить при появлении внешних потребителей (пункт `epic-6-retro-item-42` закрыт этим решением).
+
+## Deferred from: code review of spec-llm-настройки-в-бд-и-json-спецификация-через-deepseek.md (2026-10-22)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-llm-настройки-в-бд-и-json-спецификация-через-deepseek.md`
+  summary: `proxy_alias` и флаг `cloud` в БД не сверяются с фактическими маршрутами `llm-proxy`.
+  evidence: `spec-service/app/application/jobs.py` валидирует параметры профиля, но не обращается к `llm-proxy /v1/models`; рассинхрон seed/`deploy/llm-routes.yaml` проявится только на вызове. Нужна runtime-валидация или CI-проверка соответствия.
+- source_spec: `_bmad-output/implementation-artifacts/spec-llm-настройки-в-бд-и-json-спецификация-через-deepseek.md`
+  summary: Согласие на облако остаётся глобальным (`LLM_ALLOW_CLOUD`), а выбор модели — per-company.
+  evidence: `spec-service` не хранит per-company consent; включение DeepSeek для одной компании разрешает cloud-маршрут для всех, кто выберет облачную модель. Нужен отдельный tenant-флаг согласия и аудит, если это требование появится.
+- source_spec: `_bmad-output/implementation-artifacts/spec-llm-настройки-в-бд-и-json-спецификация-через-deepseek.md`
+  summary: K8s-манифесты не обновлены под новые LLM-переменные и DeepSeek route.
+  evidence: `deploy/k8s/` остаётся пустым каркасом; MVP использует docker-compose. При переходе на k8s нужно продублировать `DEEPSEEK_API_KEY`, `LLM_ALLOW_CLOUD`, `LLM_SPEC_MAPPING_ENABLED` и configmap/secret для `llm-routes.yaml`.

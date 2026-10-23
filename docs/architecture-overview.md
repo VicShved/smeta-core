@@ -15,9 +15,9 @@ C4Context
   title Контекст системы smeta1
   Person(user, "Сметчик", "Пользователь системы")
   System(smeta, "smeta1", "Извлечение и расчёт смет из PDF")
-  System_Ext(ext, "Внешняя LLM", "Опционально, только structure_only + аудит")
+  System_Ext(ext, "Внешняя LLM", "Опционально, явное согласие + аудит")
   Rel(user, smeta, "Загружает PDF, ведёт договоры и сметы")
-  Rel(smeta, ext, "Отправляет структурно-анонимизированные фрагменты", "HTTPS, выключено по умолчанию")
+  Rel(smeta, ext, "Отправляет chat-payload при явном согласии (исключение AD-003)", "HTTPS, выключено по умолчанию")
 ```
 
 Система работает локально: локальная LLM (CPU-only) обрабатывает данные по умолчанию, внешняя LLM — только при явном согласии и с аудитом.
@@ -38,7 +38,7 @@ C4Container
   Container(cat, "rate-catalog", "FastAPI", "Импорт .xlsx, маппер колонок, версии справочника")
   Container(pdf, "pdf-extract", "FastAPI", "PDF с текстовым слоем → текст")
   Container(map, "mapping-service", "FastAPI", "Сопоставление позиций, confidence")
-  Container(spec, "spec-service", "FastAPI", "Извлечение позиций спецификации через llm-proxy; JSON в MinIO")
+  Container(spec, "spec-service", "FastAPI", "Каталог LLM-провайдеров/моделей, активная модель; конфиг в llm-proxy; JSON в MinIO")
   Container(proxy, "llm-proxy", "FastAPI", "OpenAI-совместимый роутер: alias model → локальный/облачный backend")
   Container(llm, "llm-gateway", "FastAPI", "Локальная CPU-only LLM с OpenAI API")
   Container(calc, "calc-service", "FastAPI", "Каркас сервиса расчёта")
@@ -83,8 +83,8 @@ C4Container
 | rate-catalog | Импорт справочника из `.xlsx`, версии и хранение | `smeta/rate-catalog/` |
 | pdf-extract | PDF с текстовым слоем → текст; валидация цифрового PDF | `smeta/pdf-extract/` |
 | mapping-service | Сопоставление позиций со справочником, confidence (0–1) | `smeta/mapping-service/` |
-| spec-service | Асинхронная оркестрация по `file_id` (очередь в Postgres): текст из pdf-extract, извлечение через llm-proxy, маппинг, `specification.json`/`mapping.json` рядом с PDF, INFO-логи этапов | `smeta/spec-service/` |
-| llm-proxy | OpenAI-совместимый роутер: alias model → локальный/облачный backend, fallback, аудит облака | `smeta/llm-proxy/` |
+| spec-service | Асинхронная оркестрация по `file_id` (очередь в Postgres): каталог LLM-провайдеров/моделей и активная модель компании, публикация конфига в llm-proxy, текст из pdf-extract, извлечение через llm-proxy, опциональный маппинг, `specification.json`/`mapping.json` рядом с PDF, INFO-логи этапов | `smeta/spec-service/` |
+| llm-proxy | OpenAI-совместимый роутер: alias model → локальный/облачный backend, runtime-конфиг из spec-service, fallback, аудит облака | `smeta/llm-proxy/` |
 | llm-gateway | Локальная LLM (CPU-only, GGUF q2–q3), OpenAI API | `smeta/llm-gateway/` |
 | calc-service | Каркас сервиса расчёта; детерминированный расчёт выполняет `estimate` | `smeta/calc-service/` |
 | ui | Веб-интерфейс MVP (Vue) | `smeta/ui/` |
@@ -102,7 +102,7 @@ C4Container
 - **Изоляция по компании (AD-013).** Ключ `company_id` хранится на агрегатных корнях и на дочерних строках, адресуемых напрямую; сервис фильтрует выборки по нему в репозитории. Запрос без компании отклоняется.
 - **Один Postgres, база на сервис (AD-014).** Один контейнер в compose, отдельная база и свои миграции Alembic у каждого сервиса. Чужие базы не читаем — только API.
 - **Договоры — дерево любой глубины (AD-006, AD-015).** Хранение через `parent_id`; сервис сам не даёт создать цикл или сироту.
-- **Приватность извлечения (AD-003).** Внешняя LLM выключена по умолчанию; включение — только с аудитом и структурной анонимизацией.
+- **Приватность извлечения (AD-003).** Внешняя LLM выключена по умолчанию; включение — только с явным согласием и аудитом. Для chat-трафика `llm-proxy` допускается payload без `structure_only` (осознанное исключение, решение 2026-10-22).
 - **Владение данными (AD-012).** `auth-users` владеет пользователями, `company-org` — компаниями; регистрация создаёт компанию через API и идемпотентна.
 
 ## 6. Как запустить локально
