@@ -7,7 +7,7 @@ paradigm: 'DDD-границы + service-per-capability, hexagonal (ports & adapt
 scope: 'инварианты, удерживающие сервисы smeta1 и инфраструктуру деплоя от расхождений'
 status: final
 created: 2026-10-17
-updated: 2026-10-22
+updated: 2026-10-23
 binds: ['api-gateway', 'auth-users', 'company-org', 'estimate', 'pdf-extract', 'llm-gateway', 'llm-proxy', 'spec-service', 'mapping-service', 'rate-catalog', 'calc-service', 'ui', 'deploy']
 sources: []
 companions: []
@@ -198,14 +198,30 @@ flowchart LR
 - **k8s:** отложен (см. Deferred).
 - Секреты (в т.ч. HMAC-секрет JWT) передаются через env-переменные compose; управление секретами — Deferred.
 
-## Конвейер обработки
-1. Загрузка PDF → s3/minio (валидация цифрового)
-2. pdf-extract → текст
-3. spec-service → llm-proxy (OpenAI local-first; каталог провайдеров/моделей и runtime-конфиг из API) → llm-gateway/cloud → черновик спецификации; spec-service → mapping-service (опционально)
-4. mapping-service → предложения маппинга с confidence
-5. estimate (детерминированный) → расчёт при валидированных/подтверждённых сопоставлениях
+## Конвейер обработки и шаги UI
 
-**Инвариант конвейера:** шаг 3 использует llm-proxy поверх локального llm-gateway; облачные маршруты — только при явном согласии + аудит (решение 2026-10-22, без structure_only).
+1. **Загрузить PDF** → `pdf-extract` → S3/MinIO (валидация цифрового PDF).
+2. **Извлечь текст** → `POST /v1/files/{file_id}/extract`; текст сохраняется в
+   `{company_id}/{file_id}/source.txt`. Перед шагом удаляются старые результаты
+   спецификации (`DELETE /v1/spec/extract/{file_id}/artifacts`).
+3. **Извлечь спецификацию** → `spec-service` читает уже извлечённый текст
+   (`GET /v1/files/{file_id}/text`), вызывает `llm-proxy` (OpenAI local-first;
+   каталог провайдеров/моделей и runtime-конфиг из API) → `llm-gateway/cloud`,
+   пишет `chunks/*` и `specification.json`.
+4. `mapping-service` → предложения маппинга с confidence (опционально).
+5. `estimate` (детерминированный) → расчёт при валидированных/подтверждённых
+   сопоставлениях.
+
+**Перезапись результатов:** шаг 2 и шаг 3 сначала удаляют старые
+`chunks/*`, `specification.json`, `mapping.json` и job; новые результаты
+записываются поверх. Кнопка **Удалить** удаляет смету вместе с версиями и
+позициями; если привязан исходный PDF, `estimate` вызывает удаление файла в
+`pdf-extract` — запись `file`, все объекты под `{company_id}/{file_id}/` в S3,
+job и артефакты. При недоступности pdf-extract смета сохраняется (`502`).
+
+**Инвариант конвейера:** шаг 3 использует `llm-proxy` поверх локального
+`llm-gateway`; облачные маршруты — только при явном согласии + аудит
+(решение 2026-10-22, без `structure_only`).
 
 ## Capability → Architecture Map
 
