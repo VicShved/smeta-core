@@ -69,7 +69,7 @@ smeta1 — система для автоматизации обработки �
 - FR-012: Аудит облачного LLM при использовании (события: attempt/fallback/denied/allowed).
 
 ## 6. Non-Functional Requirements
-- Архитектура: микросервисы (UI Vue, Auth+Users, S3/MinIO, pdf-extract, llm-spec, llm-mapping, rate-catalog, calc, gateway).
+- Архитектура: микросервисы (UI Vue, Auth+Users, S3/MinIO, pdf-extract, spec-service, llm-proxy, llm-gateway, rate-catalog, estimate, gateway).
 - LLM: **гибрид local+cloud**. Локальная модель — **CPU-only**, 8 ГБ ОЗУ, GGUF малых квантов (**q2–q3**). Без GPU.
 - Стек: Python, FastAPI, Vue, Postgres, MinIO (S3).
 - Деплой: локально Docker Compose, готовность к Kubernetes.

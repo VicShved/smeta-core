@@ -37,11 +37,9 @@ C4Container
   Container(est, "estimate", "FastAPI", "Сметы, версии со снапшотами и детерминированный расчёт")
   Container(cat, "rate-catalog", "FastAPI", "Импорт .xlsx, маппер колонок, версии справочника")
   Container(pdf, "pdf-extract", "FastAPI", "PDF с текстовым слоем → текст")
-  Container(map, "mapping-service", "FastAPI", "Сопоставление позиций, confidence")
   Container(spec, "spec-service", "FastAPI", "Каталог LLM-провайдеров/моделей, активная модель; конфиг в llm-proxy; JSON в MinIO")
   Container(proxy, "llm-proxy", "FastAPI", "OpenAI-совместимый роутер: alias model → локальный/облачный backend")
   Container(llm, "llm-gateway", "FastAPI", "Локальная CPU-only LLM с OpenAI API")
-  Container(calc, "calc-service", "FastAPI", "Каркас сервиса расчёта")
   ContainerDb(db, "PostgreSQL", "Один инстанс; отдельная база на сервис")
   ContainerDb(s3, "MinIO", "PDF, импортированные .xlsx и модели")
   System_Ext(cloud, "Cloud LLM API", "OpenAI-compatible (опционально)")
@@ -53,13 +51,11 @@ C4Container
   Rel(gw, est, "REST + identity-заголовки")
   Rel(gw, cat, "REST + identity-заголовки")
   Rel(gw, pdf, "REST + identity-заголовки")
-  Rel(gw, map, "REST + identity-заголовки")
   Rel(gw, spec, "REST + identity-заголовки")
   Rel(spec, pdf, "REST: текст по file_id")
   Rel(spec, proxy, "REST (OpenAI Chat Completions)")
   Rel(proxy, llm, "REST: локальный backend")
   Rel(proxy, cloud, "REST: облачный backend (опционально)")
-  Rel(spec, map, "REST: file_id + positions")
   Rel(spec, db, "SQL: spec_job")
   Rel(est, cat, "REST")
   Rel(pdf, s3, "S3")
@@ -82,11 +78,9 @@ C4Container
 | estimate | Сметы, версии (активная ровно одна), позиции со снапшотами, детерминированный расчёт стоимости | `smeta/estimate/` |
 | rate-catalog | Импорт справочника из `.xlsx`, версии и хранение | `smeta/rate-catalog/` |
 | pdf-extract | PDF с текстовым слоем → текст; валидация цифрового PDF | `smeta/pdf-extract/` |
-| mapping-service | Сопоставление позиций со справочником, confidence (0–1) | `smeta/mapping-service/` |
-| spec-service | Асинхронная оркестрация по `file_id` (очередь в Postgres): каталог LLM-провайдеров/моделей и активная модель компании, публикация конфига в llm-proxy, текст из pdf-extract, извлечение через llm-proxy, опциональный маппинг, `specification.json`/`mapping.json` рядом с PDF, INFO-логи этапов | `smeta/spec-service/` |
+| spec-service | Асинхронная оркестрация по `file_id` (очередь в Postgres): каталог LLM-провайдеров/моделей и активная модель компании, публикация конфига в llm-proxy, текст из pdf-extract, извлечение через llm-proxy, `specification.json` рядом с PDF, INFO-логи этапов | `smeta/spec-service/` |
 | llm-proxy | OpenAI-совместимый роутер: alias model → локальный/облачный backend, runtime-конфиг из spec-service, fallback, аудит облака | `smeta/llm-proxy/` |
 | llm-gateway | Локальная LLM (CPU-only, GGUF q2–q3), OpenAI API | `smeta/llm-gateway/` |
-| calc-service | Каркас сервиса расчёта; детерминированный расчёт выполняет `estimate` | `smeta/calc-service/` |
 | ui | Веб-интерфейс MVP (Vue) | `smeta/ui/` |
 | deploy | `docker-compose.yml`, ресурсы, будущий k8s | `smeta/deploy/` |
 

@@ -50,7 +50,7 @@ inputDocuments:
 - AR-001: Snapshot расценок/ЕИ в позициях сметы (`rate_snapshot_id`, `unit_snapshot`, `rate_amount_snapshot`) — изменения справочника не влияют на рассчитанные версии (AD-002).
 - AR-002: Договоры — adjacency list (`parent_id`), произвольная глубина (AD-006).
 - AR-003: Обработка конвейера через очередь сообщений (брокер — Deferred).
-- AR-004: Микросервисные границы: api-gateway, auth-users, company-org, estimate, pdf-extract, llm-gateway, mapping-service, rate-catalog, calc-service, s3/minio, ui.
+- AR-004: Микросервисные границы: api-gateway, auth-users, company-org, estimate, pdf-extract, llm-gateway, rate-catalog, s3/minio, ui.
 
 ### FR Coverage Map
 
@@ -91,7 +91,7 @@ So that я мог разрабатывать и отлаживать серви�
 
 **Given** чистый репозиторий и установленный Docker Compose
 **When** я запускаю `docker compose up`
-**Then** поднимаются сервисы-заглушки (api-gateway, auth-users, company-org, estimate, pdf-extract, llm-gateway, mapping-service, rate-catalog, calc-service, ui) с healthcheck
+**Then** поднимаются сервисы-заглушки (api-gateway, auth-users, company-org, estimate, pdf-extract, llm-gateway, rate-catalog, ui) с healthcheck
 **And** поднимаются Postgres и MinIO с персистентными томами
 **And** конфигурация сервисов читается из переменных окружения
 
@@ -278,7 +278,7 @@ So that быстро проверить результат и найти про�
 **Acceptance Criteria:**
 
 **Given** извлечённая спецификация и активная версия справочника
-**When** срабатывает mapping-service
+**When** выполняется маппинг
 **Then** для каждой позиции предлагается сопоставление с расценкой и нормализованная ЕИ
 **And** каждой позиции присваивается `confidence` (0–1)
 **And** позиции с `confidence < 0.70` помечаются как требующие проверки
