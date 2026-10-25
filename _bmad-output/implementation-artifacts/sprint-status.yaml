@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-25-2026 20:07'
+last_updated: '10-25-2026 20:18'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -58,7 +58,7 @@ development_status:
 
   epic-8: done
   8-1-сопоставление-позиций-сметы-со-справочником-цен: done
-  epic-8-retrospective: optional
+  epic-8-retrospective: done
 action_items:
   - id: "retro-epic1-1"
     epic: 1
@@ -356,3 +356,72 @@ action_items:
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-6-retro-10-21-2026.md"
+  - id: "epic-7-retro2-item-1-починить-e2e-seed-zone"
+    epic: 7
+    action: "Починить deploy/e2e/smeta_e2e/seed.py: передавать zone_code в импорт
+      справочника и перезапустить браузерный e2e до зелёного"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
+  - id: "epic-7-retro2-item-2-сделать-e2e-блокирующим"
+    epic: 7
+    action: "После стабилизации убрать continue-on-error у e2e-job в deploy/.github/workflows/ci.yml
+      или сделать отдельный required job"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
+  - id: "epic-7-retro2-item-3-серверная-проверка-admin"
+    epic: 7
+    action: "Ввести серверную проверку роли admin для импорта справочника и настроек
+      LLM либо зафиксировать открытый доступ в AD-013/README"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
+  - id: "epic-7-retro2-item-5-package-description"
+    epic: 7
+    action: "Обновить описание ui/package.json на 7.1a–7.9 и текущие экраны"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
+  - id: "epic-7-retro2-item-6-отдельная-бд-для-integration"
+    epic: 7
+    action: "Для локального integration-прогона 7.7 использовать отдельную БД pdf_extract_test
+      вместо живой dev-БД"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
+  - id: "epic-7-retro2-item-7-разделять-коммиты-по-историям"
+    epic: 7
+    action: "Коммитить изменения по одной истории; при смешанном изменении перечислять
+      истории в теле коммита"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
+  - id: "epic-8-retro-item-1-спека-8-1-зона"
+    epic: 8
+    action: "Добавить as-built дополнение к spec-8-1: zone_code, миграция 0007 и семантика
+      периода"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-10-25-2026.md"
+  - id: "epic-8-retro-item-2-e2e-match-rates"
+    epic: 8
+    action: "После починки e2e seed добавить в браузерный e2e шаг match-rates и проверку
+      периода/confidence"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-10-25-2026.md"
+  - id: "epic-8-retro-item-3-калибровка-порога"
+    epic: 8
+    action: "Прогнать реальный справочник и PDF, замерить покрытие и долю needs_review,
+      откалибровать порог 0.70 или зафиксировать риск; закрыть epic-5-retro-item-36"
+    owner: "Shved"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-10-25-2026.md"
+  - id: "epic-8-retro-item-4-лимит-1000-имён"
+    epic: 8
+    action: "Зафиксировать предел 1000 имён в контракте matches и добавить тест на
+      границу"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-10-25-2026.md"
