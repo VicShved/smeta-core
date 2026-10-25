@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-25-2026 20:55'
+last_updated: '10-25-2026 21:00'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -368,7 +368,7 @@ action_items:
     action: "После стабилизации убрать continue-on-error у e2e-job в deploy/.github/workflows/ci.yml
       или сделать отдельный required job"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
   - id: "epic-7-retro2-item-3-серверная-проверка-admin"
     epic: 7
