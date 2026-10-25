@@ -100,12 +100,19 @@ context:
 - `cd ui && npm test && npm run typecheck && npm run build` -> `149 passed`, typecheck/build без ошибок
 - `cd deploy && docker compose config -q` -> OK
 
-**Не покрыто автоматически:** качество cosine-порога на реальном справочнике; браузерный e2e.
+**Не покрыто автоматически:** качество cosine-порога на реальном справочнике.
 
 ## Implementation Notes
 
-- **rate-catalog**: `POST /v1/rate-catalog/matches` ищет только среди материалов, у которых есть цена за точный период; сортировка cosine distance, затем `code`, затем `price.id`. Ответ в порядке входа, до 1000 имён. `/search` не менялся.
-- **estimate**: период хранится в `estimate` тремя nullable-колонками с CHECK «все три или ни одной». Первое успешное сопоставление сохраняет период; `GET /v1/estimates/{id}` отдаёт `catalog_period`.
+- **rate-catalog**: `POST /v1/rate-catalog/matches` ищет только среди материалов, у которых есть цена за точный регион/год/квартал/зону; сортировка cosine distance, затем `code`, затем `price.id`. Ответ в порядке входа, до 1000 имён (каждое ≤1000 символов); границы покрыты тестами. `/search` не менялся.
+- **estimate**: период хранится в `estimate` четырьмя nullable-колонками (`region_code`, `year`, `quarter`, `zone`) с CHECK «все или ни одной»; миграции `0006_add_catalog_period.py` и `0007_add_catalog_zone.py`. Каждое успешное сопоставление обновляет период; `GET /v1/estimates/{id}` отдаёт `catalog_period` с `zone_code`.
 - **estimate (сопоставление)**: чтение контекста → вызов справочника при закрытой сессии → транзакционная запись под блокировкой. Обновляются только `proposed`; `confirmed`/`corrected` попадают в `skipped`. `confidence` = cosine score, clamp 0..1, Numeric(5,4).
-- **UI**: `EstimateMatchPanel.vue` с регионом/годом/кварталом; после успеха таблица перезагружается с первой страницы, период обновляется локально.
-- **Таймауты**: оба новых маршрута получают 600 с на gateway и 620 с в nginx; клиент UI — 600 с; HTTP-клиент estimate к rate-catalog — 600 с.
+- **UI**: `EstimateMatchPanel.vue` с регионом/годом/кварталом/зоной; после успеха таблица перезагружается с первой страницы, период обновляется локально.
+- **Таймауты**: gateway — 900 с (`PROXY_RATE_CATALOG_TIMEOUT_SECONDS`), nginx — 920 с, клиент UI — 900 с; HTTP-клиент estimate к rate-catalog — 600 с.
+
+## As-built addendum (2026-10-25)
+
+- Период справочника и `POST /v1/rate-catalog/matches` включают `zone_code`; миграция `estimate` — `0007_add_catalog_zone.py`. Это добавлено Story 3.5 после первой редакции 8.1.
+- Период обновляется каждым успешным `match-rates`, а не только первым; UI позволяет менять период до расчёта версии.
+- `matches` принимает 1–1000 имён; ровно 1000 — `200`, 1001 — `422`. Тесты: `rate-catalog/tests/test_match_rates.py::test_match_accepts_up_to_1000_names`, `::test_match_rejects_more_than_1000_names`.
+- Браузерный e2e (`deploy/e2e`) дополнен шагом `match-rates` и проверкой сохранённого периода.
