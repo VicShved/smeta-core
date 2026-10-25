@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-25-2026 23:05'
+last_updated: '10-25-2026 23:15'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -312,7 +312,7 @@ action_items:
     action: "Сквозной прогон PDF → текст → LLM → маппинг на реальных PDF и модели,
       замер покрытия и доли низкоуверенных"
     owner: "Shved"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-5-retro-10-21-2026.md"
   - id: "epic-5-retro-item-37-golden-набор-позиций-и-расценок-для-мапп"
     epic: 5
@@ -395,7 +395,7 @@ action_items:
     action: "Коммитить изменения по одной истории; при смешанном изменении перечислять
       истории в теле коммита"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
   - id: "epic-8-retro-item-1-спека-8-1-зона"
     epic: 8
@@ -416,7 +416,7 @@ action_items:
     action: "Прогнать реальный справочник и PDF, замерить покрытие и долю needs_review,
       откалибровать порог 0.70 или зафиксировать риск; закрыть epic-5-retro-item-36"
     owner: "Shved"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-8-retro-10-25-2026.md"
   - id: "epic-8-retro-item-4-лимит-1000-имён"
     epic: 8
