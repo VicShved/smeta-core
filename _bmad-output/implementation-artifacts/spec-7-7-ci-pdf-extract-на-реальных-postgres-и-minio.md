@@ -2,7 +2,7 @@
 title: 'Story 7.7 — CI pdf-extract на реальных Postgres и MinIO'
 type: 'chore'
 created: '2026-10-21'
-status: 'in-progress'
+status: 'done'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -46,7 +46,7 @@ context:
 **Execution:**
 - [x] `pdf-extract/tests/test_real_services.py` -- upload → extract → get → MinIO -- реальные адаптеры.
 - [x] `pdf-extract/.github/workflows/ci.yml` -- job `integration` -- Postgres/MinIO.
-- [ ] `pdf-extract` -- ruff/pytest и локальный прогон кейса против Postgres/MinIO -- верификация.
+- [x] `pdf-extract` -- ruff/pytest и локальный прогон кейса против Postgres/MinIO -- верификация.
 
 **Acceptance Criteria:**
 - Given CI integration, when job выполняется, then миграции накатываются на Postgres, а кейс проходит на реальном MinIO.
@@ -67,7 +67,7 @@ context:
 
 ## Verification
 
-**Результат 2026-10-25:** код и CI-job реализованы; юнит-прогон `ruff check .` — чисто, `pytest -q` — 133 passed, 2 skipped (интеграционный кейс пропущен без `PDF_EXTRACT_INTEGRATION=1`), YAML CI валиден. Реальный integration-прогон на Postgres/MinIO локально не выполнялся (стенд не поднимался) — статус остаётся `in-progress` до зелёного CI.
+**Результат 2026-10-25:** код и CI-job реализованы; юнит-прогон `ruff check .` — чисто, `pytest -q` — 133 passed, 2 skipped (без env), YAML CI валиден. Локальный integration-прогон на реальных Postgres/MinIO: `2 passed` (upload → extract → get → MinIO и migration layout), 2026-10-25. Story закрыта.
 
 **Commands:**
 - `cd pdf-extract && .venv/bin/ruff check . && .venv/bin/pytest -q` -- expected: `110 passed, 1 skipped`.

@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-25-2026 19:13'
+last_updated: '10-25-2026 20:07'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -51,7 +51,7 @@ development_status:
   7-4-хвосты-epic-7-ui-таймауты-и-утечка-страницы-pdf: done
   7-5-pdf-extract-целостность-лимиты-и-conftest: done
   7-6-единый-sessionmaker-на-процесс: done
-  7-7-ci-pdf-extract-на-реальных-postgres-и-minio: in-progress
+  7-7-ci-pdf-extract-на-реальных-postgres-и-minio: done
   7-8-браузерный-e2e-ключевой-путь-ui: done
   7-9-шапка-пользователя-и-кнопка-загрузки-справочника: done
   epic-7-retrospective: done

@@ -449,7 +449,7 @@ So that оценить результат обработки сметы.
 | 7.4 | done | Хвосты UI: сброс загрузки, retry, точная цена, таймауты, утечка страницы PDF |
 | 7.5 | done | `pdf-extract`: целостность объекта, лимиты, общий `conftest` |
 | 7.6 | done | Один engine/sessionmaker на процесс |
-| 7.7 | in-progress | CI `pdf-extract` на реальных Postgres/MinIO (job есть) |
+| 7.7 | done | CI `pdf-extract` на реальных Postgres/MinIO |
 | 7.8 | done | Браузерный e2e ключевого пути UI (Playwright) |
 | 7.9 | done | Email/роль в шапке, кнопка загрузки справочника |
 | 8.1 | done | Сопоставление позиций со справочником по эмбеддингам (pgvector) |

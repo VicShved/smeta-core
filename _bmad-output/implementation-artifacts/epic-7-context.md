@@ -17,7 +17,7 @@
 - Story 7.4: Хвосты Epic 7: восстановление UI, таймауты загрузки, утечка страницы PDF — done
 - Story 7.5: pdf-extract — целостность объекта, лимиты разбора, тестовая обвязка — done
 - Story 7.6: Один engine/sessionmaker на процесс — done
-- Story 7.7: CI pdf-extract на реальных Postgres/MinIO — in-progress (job есть)
+- Story 7.7: CI pdf-extract на реальных Postgres/MinIO — done
 - Story 7.8: Браузерный e2e ключевого пути UI — done
 - Story 7.9: Email и роль в шапке, кнопка загрузки справочника — done
 
