@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-25-2026 20:18'
+last_updated: '10-25-2026 20:55'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -361,7 +361,7 @@ action_items:
     action: "Починить deploy/e2e/smeta_e2e/seed.py: передавать zone_code в импорт
       справочника и перезапустить браузерный e2e до зелёного"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
   - id: "epic-7-retro2-item-2-сделать-e2e-блокирующим"
     epic: 7
