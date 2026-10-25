@@ -18,6 +18,8 @@
 ## Deferred from: code review of spec-2-3-этапы-договора.md (2026-10-20)
 
 - `make_session_factory` не кэширует engine: каждый `make_*_runner` строит свою фабрику, на один импорт `main.py` создаётся 5 engine с отдельными пулами. Pre-existing паттерн Story 2.1/2.2; фикс — `@lru_cache`/единый sessionmaker в wiring.
+  status: resolved
+  resolved_by: Story 7.6 — `*/app/infrastructure/db.py` кэширует фабрику по разрешённому DSN, `tests/test_db.py` во всех пяти сервисах (2026-10-21).
 
 
 ## Deferred from: code review of spec-3-1-импорт-справочника-из-excel-с-маппером-колонок.md (2026-10-20)
@@ -190,10 +192,12 @@
   evidence: `estimate/app/wiring.py` — use case'ы записи открывают сессию и внутри неё зовут внешние сервисы: company-org (`create_estimate`), pdf-extract (`attach_source`), rate-catalog (`review_item`, `calculate_cost`). Code Map этой спеки ограничивал правку тремя use case'ами на чтение; на путях записи вынос вызова за пределы сессии требует другой последовательности (предварительное чтение → сетевой вызов → запись в новой транзакции), а деградация там невозможна в принципе: внешний ответ участвует в решении о записи.
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-3-estimate-деградация-и-контракт-внешних-вызовов.md`
   summary: Семантика деградации и «нарушения контракта» закреплена только для `estimate`: остальные сервисы системы по-прежнему различают свои `404`/`5xx` по-своему.
-  evidence: `mapping-service`, `pdf-extract`, `company-org`, `rate-catalog` не вызывают друг друга и не имеют общего хелпера; единый контракт внешних вызовов зафиксирован в `estimate/app/infrastructure/http.py` — при появлении у сервиса нескольких исходящих зависимостей хелпер стоит перенести в общий модуль.
+  evidence: `spec-service`, `pdf-extract`, `company-org`, `rate-catalog` не вызывают друг друга и не имеют общего хелпера; единый контракт внешних вызовов зафиксирован в `estimate/app/infrastructure/http.py` — при появлении у сервиса нескольких исходящих зависимостей хелпер стоит перенести в общий модуль. (`mapping-service` удалён при выделении `spec-service`, 2026-10-24.)
 - source_spec: `_bmad-output/implementation-artifacts/spec-7-3-estimate-деградация-и-контракт-внешних-вызовов.md`
   summary: Проверки `estimate` идут на SQLite; денежные `Numeric(18,2)` и `DateTime(timezone=True)` в Postgres не проверяются.
   evidence: `tests/conftest.py` мигрирует sqlite-БД; postgres service-контейнер в CI не поднимается (открытые пункты `epic-2-retro-item-5`, `epic-4-retro-item-9`). Для этой истории не проверялось: реальный Postgres и живой стенд compose с недоступным rate-catalog/pdf-extract.
+  status: resolved
+  resolved_by: `estimate/.github/workflows/ci.yml` job `integration` с Postgres и прогоном на реальной БД (2026-10-21). Живой compose-стенд с недоступным rate-catalog/pdf-extract этой историей по-прежнему не покрыт.
 
 ## Принятые риски: реальный корпус PDF (решение владельца, 2026-10-21)
 
@@ -217,3 +221,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-llm-настройки-в-бд-и-json-спецификация-через-deepseek.md`
   summary: K8s-манифесты не обновлены под новые LLM-переменные и DeepSeek route.
   evidence: `deploy/k8s/` остаётся пустым каркасом; MVP использует docker-compose. При переходе на k8s нужно продублировать `DEEPSEEK_API_KEY`, `LLM_ALLOW_CLOUD`, `LLM_SPEC_MAPPING_ENABLED` и configmap/secret для `llm-routes.yaml`.
+
+## Deferred from doc-sync 2026-10-25
+
+- source_spec: `_bmad-output/implementation-artifacts/doc-sync-2026-10-25.md`
+  summary: Роль `admin` не проверяется на сервере: `/catalog` и `/settings/llm` в UI доступны по маршруту, ссылки скрываются только по роли; `rate-catalog` не читает `X-Role`.
+  evidence: `ui/src/router.ts` объявляет `requires_admin`, но ни один маршрут его не использует; `ui/src/App.vue` скрывает ссылки по `session.role`. В `rate-catalog/app/transport/routes.py` нет проверки `X-Role`, импорт справочника доступен любому аутентифицированному. Решение владельца: либо ввести серверную проверку `admin` для импорта справочника и настроек LLM, либо зафиксировать, что эти операции доступны всем.

@@ -14,7 +14,8 @@
 
 ## Requirements & Constraints
 
-- Система состоит из микросервисов: api-gateway, auth-users, company-org, estimate, pdf-extract, llm-gateway, mapping-service, rate-catalog, calc-service, ui. Внешняя инфраструктура: Postgres, MinIO (S3-совместимое хранилище). Каждый сервис имеет healthcheck.
+- Система состоит из микросервисов: api-gateway, auth-users, company-org, estimate, pdf-extract, spec-service, llm-proxy, llm-gateway, rate-catalog, ui. Внешняя инфраструктура: Postgres (+pgvector), MinIO (S3-совместимое хранилище). Каждый сервис имеет healthcheck.
+- **As-built 2026-10-25:** `mapping-service` и `calc-service` не реализованы и удалены из топологии; маппинг выполняет `rate-catalog`/`estimate`, расчёт — `estimate`, извлечение — `spec-service`.
 - Локальный запуск — Docker Compose; целевой деплой — Kubernetes; конфигурация — через переменные окружения/env-файлы.
 - Локальная LLM обязана работать CPU-only, без GPU, в пределах 8 ГБ ОЗУ (GGUF малых квантов q2–q3).
 - Облачный fallback LLM: по умолчанию запрещён; при включении — только структурно-анонимизированные фрагменты (без наименований, количеств, ЕИ из смет); любое облачное использование фиксируется в журнале аудита (попытки, разрешения, отказы, объём структурных блоков).
@@ -26,7 +27,7 @@
 - **AD-004 (CPU-only локальная LLM):** рантайм без GPU, лимит 8 ГБ ОЗУ, GGUF квантование q2–q3.
 - **AD-009 (Поли-репо-топология):** каждый сервис — самодостаточный репозиторий в дереве `smeta/<service>/`; общий деплой — `smeta/deploy/` (docker-compose + k8s). Shared-lib на старте не вводится; общие контракты — только через API-схемы и сообщения.
 - Стек сервисов: Python/FastAPI; ui — Vue; БД — Postgres; хранилище — MinIO. llm-gateway предоставляет единый интерфейс инференса независимо от рантайма (local/cloud).
-- Оркестрация конвейера PDF→extract→spec→mapping→calc требует очереди сообщений, но конкретный брокер (RabbitMQ/Redis Streams/NATS/Kafka) — отложенное решение (Deferred), не фиксировать в этом эпике.
+- **As-built 2026-10-25:** отдельный брокер не вводится; очередь конвейера — таблица `spec_job` в Postgres (`FOR UPDATE SKIP LOCKED`), которую обрабатывает worker `spec-service`.
 
 ## Cross-Story Dependencies
 

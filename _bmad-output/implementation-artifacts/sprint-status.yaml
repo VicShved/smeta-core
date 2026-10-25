@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-21-2026 17:31'
+last_updated: '10-25-2026 19:13'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -22,6 +22,8 @@ development_status:
   3-1-импорт-справочника-из-excel-с-маппером-колонок: done
   3-2-версионирование-справочника: done
   3-3-snapshot-расценок-в-позициях-смет: done
+  3-4-импорт-сплит-формы-индексов-и-сметных-цен: done
+  3-5-региональная-база-2022-цены-по-кварталам-и-зонам: done
   epic-3-retrospective: done
 
   epic-4: done
@@ -45,7 +47,18 @@ development_status:
   7-1a-ui-вход-и-дерево-смет: done
   7-1b-ui-загрузка-pdf-и-статусы-обработки: done
   7-2-просмотр-спецификации-маппинга-и-стоимости: done
+  7-3-estimate-деградация-и-контракт-внешних-вызовов: done
+  7-4-хвосты-epic-7-ui-таймауты-и-утечка-страницы-pdf: done
+  7-5-pdf-extract-целостность-лимиты-и-conftest: done
+  7-6-единый-sessionmaker-на-процесс: done
+  7-7-ci-pdf-extract-на-реальных-postgres-и-minio: in-progress
+  7-8-браузерный-e2e-ключевой-путь-ui: done
+  7-9-шапка-пользователя-и-кнопка-загрузки-справочника: done
   epic-7-retrospective: done
+
+  epic-8: done
+  8-1-сопоставление-позиций-сметы-со-справочником-цен: done
+  epic-8-retrospective: optional
 action_items:
   - id: "retro-epic1-1"
     epic: 1

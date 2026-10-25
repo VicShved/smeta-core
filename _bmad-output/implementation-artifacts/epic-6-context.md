@@ -25,9 +25,9 @@
 
 ## Technical Decisions
 
-- `estimate` — отдельный FastAPI-сервис с собственной базой Postgres и миграциями Alembic; владеет сметами, версиями и позициями. Детерминированный расчёт стоимости выполняет `estimate` (решение владельца 2026-10-20), `calc-service` остаётся каркасом; прямые обращения к чужой БД запрещены, только API.
+- `estimate` — отдельный FastAPI-сервис с собственной базой Postgres и миграциями Alembic; владеет сметами, версиями и позициями. Детерминированный расчёт стоимости выполняет `estimate` (решение владельца 2026-10-20); `calc-service` не реализован и удалён из топологии. Прямые обращения к чужой БД запрещены, только API.
 - `estimate_item` принадлежит версии и получает tenancy через `estimate.company_id`; все выборки фильтруются по `company_id` в репозитории. Доступ по id дополнительно проверяет компанию.
-- Identity — только заголовки api-gateway (`X-User-Id`, `X-Company-Id`, `X-Role`); JWT внутренние сервисы не парсят. `company_id` обязателен; отсутствие identity — отказ. Наружу экспонируется только api-gateway.
+- Identity — только заголовки api-gateway (`X-User-Id`, `X-Company-Id`, `X-Role`); JWT внутренние сервисы не парсят. `company_id` обязателен; отсутствие identity — отказ. Из бэкенд-сервисов наружу экспонируется только api-gateway; UI — отдельный фронтенд-контейнер.
 - Слои внутри сервиса: domain → application → infrastructure → transport; domain/application не зависят от FastAPI/SQLAlchemy. Мутации — только через application use cases.
 - Конвенции: UUID; время ISO-8601 UTC; ошибки RFC 7807 `application/problem+json`; списки `limit`/`offset`; версия API в пути (`/v1/...`); поля `snake_case`; денежные суммы — Decimal, не float.
 - Целевой репозиторий — `smeta/estimate/`; деплой — общий `smeta/deploy/` (compose, отдельная база `estimate`).

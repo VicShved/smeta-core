@@ -2,7 +2,7 @@
 title: 'Story 7.6 — один engine/sessionmaker на процесс во всех сервисах'
 type: 'chore'
 created: '2026-10-21'
-status: 'in-progress'
+status: 'done'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -45,9 +45,9 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `*/app/infrastructure/db.py` -- кэш дефолтной фабрики -- один пул на процесс.
-- [ ] `*/tests/test_db.py` -- кэш/явный DSN/смена env -- регрессия.
-- [ ] `company-org`, `pdf-extract`, `rate-catalog`, `estimate`, `auth-users` -- ruff/pytest -- верификация.
+- [x] `*/app/infrastructure/db.py` -- кэш дефолтной фабрики -- один пул на процесс.
+- [x] `*/tests/test_db.py` -- кэш/явный DSN/смена env -- регрессия.
+- [x] `company-org`, `pdf-extract`, `rate-catalog`, `estimate`, `auth-users` -- ruff/pytest -- верификация.
 
 **Acceptance Criteria:**
 - Given сервис стартует, when wiring создаёт несколько use case'ов, then все используют один engine для дефолтного `POSTGRES_DSN`.
@@ -65,6 +65,8 @@ context:
 - `make_session_factory(dsn=None)`: явный DSN — `create_engine` на вызов; без DSN — `_default_session_factory(resolved)` с `lru_cache`. Ключ — разрешённый DSN, поэтому тесты с разными временными DSN не мешают друг другу.
 
 ## Verification
+
+**Результат 2026-10-25:** `ruff check .` — чисто во всех пяти сервисах; `pytest -q tests/test_db.py` — 3 passed в каждом (auth-users, company-org, estimate, pdf-extract, rate-catalog).
 
 **Commands:**
 - `cd company-org && .venv/bin/ruff check . && .venv/bin/pytest -q` -- expected: зелёные.

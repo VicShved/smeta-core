@@ -44,8 +44,8 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `pdf-extract/tests/test_real_services.py` -- upload → extract → get → MinIO -- реальные адаптеры.
-- [ ] `pdf-extract/.github/workflows/ci.yml` -- job `integration` -- Postgres/MinIO.
+- [x] `pdf-extract/tests/test_real_services.py` -- upload → extract → get → MinIO -- реальные адаптеры.
+- [x] `pdf-extract/.github/workflows/ci.yml` -- job `integration` -- Postgres/MinIO.
 - [ ] `pdf-extract` -- ruff/pytest и локальный прогон кейса против Postgres/MinIO -- верификация.
 
 **Acceptance Criteria:**
@@ -66,6 +66,8 @@ context:
 - Ожидание MinIO — TCP-connect из Python: образ не гарантирует наличие `curl`/`mc`.
 
 ## Verification
+
+**Результат 2026-10-25:** код и CI-job реализованы; юнит-прогон `ruff check .` — чисто, `pytest -q` — 133 passed, 2 skipped (интеграционный кейс пропущен без `PDF_EXTRACT_INTEGRATION=1`), YAML CI валиден. Реальный integration-прогон на Postgres/MinIO локально не выполнялся (стенд не поднимался) — статус остаётся `in-progress` до зелёного CI.
 
 **Commands:**
 - `cd pdf-extract && .venv/bin/ruff check . && .venv/bin/pytest -q` -- expected: `110 passed, 1 skipped`.
