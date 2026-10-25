@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-25-2026 22:28'
+last_updated: '10-25-2026 23:05'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -388,7 +388,7 @@ action_items:
     action: "Для локального integration-прогона 7.7 использовать отдельную БД pdf_extract_test
       вместо живой dev-БД"
     owner: "dev"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-7-retro-10-25-2026.md"
   - id: "epic-7-retro2-item-7-разделять-коммиты-по-историям"
     epic: 7

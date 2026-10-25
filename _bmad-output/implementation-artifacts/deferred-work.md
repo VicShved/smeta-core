@@ -227,3 +227,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/doc-sync-2026-10-25.md`
   summary: Роль `admin` не проверяется на сервере: `/catalog` и `/settings/llm` в UI доступны по маршруту, ссылки скрываются только по роли; `rate-catalog` не читает `X-Role`.
   evidence: `ui/src/router.ts` объявляет `requires_admin`, но ни один маршрут его не использует; `ui/src/App.vue` скрывает ссылки по `session.role`. В `rate-catalog/app/transport/routes.py` нет проверки `X-Role`, импорт справочника доступен любому аутентифицированному. Решение владельца: либо ввести серверную проверку `admin` для импорта справочника и настроек LLM, либо зафиксировать, что эти операции доступны всем.
+
+## Deferred from implementation of spec-epic-7-retro2-item-6 (2026-10-25)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-epic-7-retro2-item-6-отдельная-бд-для-локального-integration.md`
+  summary: Добавить юнит-тесты для `_test_dsn`/`_ensure_database` без реального Postgres: explicit DSN, отсутствие имени БД, duplicate-create.
+  evidence: Integration-прогон и негативная проверка same-DSN покрывают основные ветки, но ошибки `ProgrammingError`/`OperationalError` и fallback на `DEFAULT_DSN` проверяются только на живом Postgres или вручную.
