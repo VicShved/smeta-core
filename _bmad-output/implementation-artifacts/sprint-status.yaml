@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-26-2026 14:20'
+last_updated: '10-26-2026 15:25'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -63,6 +63,8 @@ development_status:
   8-4-выбор-материала-из-справочника: done
   8-5-ссылка-на-материал-справочника: done
   8-6-защита-тестов-rate-catalog-от-рабочей-бд: done
+  8-7-нет-материала-в-справочнике-и-признак-исправления: done
+  8-8-пагинация-справочника-в-модалке-выбора: done
   epic-8-retrospective: done
 action_items:
   - id: "retro-epic1-1"

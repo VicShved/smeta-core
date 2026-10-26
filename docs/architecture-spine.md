@@ -79,7 +79,7 @@ flowchart TD
 ### AD-010: JWT-аутентификация, проверка только на edge [ADOPTED]
 - **Binds:** auth-users (выпуск), api-gateway (проверка), все сервисы (потребители identity)
 - **Prevents:** разнобой схем аутентификации между сервисами; раздача секрета по всем сервисам; подделка identity при прямом обращении к сервису
-- **Rule:** JWT **HS256**, единый HMAC-секрет известен **только** auth-users и api-gateway. Выпускает токены только auth-users. **Подпись проверяет только api-gateway**; к внутренним сервисам снаружи попасть нельзя — из бэкенда экспонируется лишь api-gateway; UI публикуется отдельным фронтенд-контейнером (внутренние сервисы используют `expose`, без `ports`). Claims: `sub` (user_id), `company_id`, `role` (`estimator` для публичной регистрации, `admin` для bootstrap), `iat`, `exp`. TTL access-токена — **168ч (7 дней)**; refresh-токенов нет (повторный логин). Внутрь identity передаётся заголовками `X-User-Id`, `X-Company-Id`, `X-Role`; api-gateway **обязан удалять/перезаписывать** входящие заголовки с этими именами; сервисы токен не парсят и берут identity только из заголовков. Вызовы сервис-ту-сервис пробрасывают те же заголовки.
+- **Rule:** JWT **HS256**, единый HMAC-секрет известен **только** auth-users и api-gateway. Выпускает токены только auth-users. **Подпись проверяет только api-gateway**; к внутренним сервисам снаружи попасть нельзя — из бэкенда экспонируется лишь api-gateway; UI публикуется отдельным фронтенд-контейнером (внутренние сервисы используют `expose`, без `ports`). Claims: `sub` (user_id), `email` (логин), `company_id`, `role` (`estimator` для публичной регистрации, `admin` для bootstrap), `iat`, `exp`. TTL access-токена — **168ч (7 дней)**; refresh-токенов нет (повторный логин). Внутрь identity передаётся заголовками `X-User-Id`, `X-User-Email`, `X-Company-Id`, `X-Role`; api-gateway **обязан удалять/перезаписывать** входящие заголовки с этими именами; сервисы токен не парсят и берут identity только из заголовков. Вызовы сервис-ту-сервис пробрасывают те же заголовки.
 
 ### AD-011: Clean Architecture сервисов [ADOPTED]
 - **Binds:** все сервисы, **кроме llm-gateway** (исключение)
@@ -199,7 +199,7 @@ flowchart LR
 - **stage** (id, company_id, contract_id, name, ...)
 - **estimate** (id, company_id, contract_id, stage_id, name, source_file_id?, catalog_region_code?, catalog_year?, catalog_quarter?, catalog_zone?, ...) — привязка к этапу (уровень «подраздел этапа» упразднён 2026-10-20); период справочника nullable и заполняется успешным сопоставлением
 - **estimate_version** (id, estimate_id, version_no, is_active, calculated_at, **total_cost**, ...) — ровно одна is_active
-- **estimate_item** (id, estimate_version_id, row_ref, manufacturer, name, unit_orig, unit_normalized?, qty, section, **material_id?**, **rate_code**, **rate_snapshot_id**, **unit_snapshot**, **rate_amount_snapshot**, confidence, status, reviewed_at?, **cost**, ...)
+- **estimate_item** (id, estimate_version_id, row_ref, manufacturer, name, unit_orig, unit_normalized?, qty, section, **material_id?**, **rate_code**, **rate_snapshot_id**, **unit_snapshot**, **rate_amount_snapshot**, confidence, status, reviewed_at?, reviewed_by?, **cost**, ...)
 - **region** (code, name) — субъект РФ
 - **material** (id, region_code, code, name, unit, group_code?, group_name?) — уникален по `(region_code, code)`; каталог глобальный, без `company_id`
 - **material_base_price** (material_id PK, release_price?, base_estimate_price?, imported_at, source_file_hash, created_by?) — региональная база 2022, 1:1 к материалу
