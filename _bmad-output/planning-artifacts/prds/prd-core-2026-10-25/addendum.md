@@ -32,13 +32,14 @@
 - Рассчитанная версия заморожена; новые цены — только в новой версии.
 - API diff сравнивает снапшоты без пересчёта; UI diff — 1.1.
 
-## 4a. Обратная связь и ручная привязка (Story 8.2)
+## 4a. Обратная связь и ручная привязка (Stories 8.2–8.4)
 
-- `estimate_item`: `status=rejected`, `correction_link`; `match_feedback` — append-only журнал решений `confirm`/`correct`/`reject` со снимком запроса, предложенной/исправленной расценкой, периодом и комментарием.
-- Review API принимает `rate_link` (URL из `/prices`), `rate_code`, `rate_catalog_id` или `unit`; ссылка проверяется за период/зону.
-- `rate-catalog` отдаёт `GET /v1/rate-catalog/rates/lookup` по коду и периоду.
+- `estimate_item`: `reviewed_at`, `status=rejected`, `correction_link`; `match_feedback` — append-only журнал решений `confirm`/`correct`/`reject` со снимком запроса, предложенной/исправленной расценкой, периодом и комментарием.
+- Найденная при `match-rates` расценка сохраняется как `confirmed` с `reviewed_at=null`; повторное сопоставление обновляет такие позиции и пропускает ручные решения (`reviewed_at` заполнен).
+- Review API принимает `rate_link` (URL из `/prices`), `rate_code`, `material_id` или `unit`; цена материала проверяется за период/зону. `estimate_item.material_id` — ссылка на `material.id`, цена периода остаётся в `material_price`.
+- `rate-catalog` отдаёт `GET /v1/rate-catalog/rates/lookup` по коду и периоду; `GET /prices` поддерживает `q` — поиск по коду ИЛИ наименованию.
 - JSONL-экспорт: `python -m app.tools.export_match_feedback`; положительные/отрицательные пары, без автоматического обучения.
-- UI: «Неверно»/«Исправить», copy-link в `/prices`.
+- UI: чекбокс «Верно» (`confirm`/`reject`), «Исправить» с модальным справочником за период сметы, sticky-колонки; copy-link в `/prices` сохранён.
 
 ## 5. Доступ и эксплуатация
 

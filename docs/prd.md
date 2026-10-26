@@ -1,6 +1,6 @@
 # PRD: smeta1
 
-> Полная актуальная версия PRD: `_bmad-output/planning-artifacts/prds/prd-core-2026-10-25/prd.md` (BMAD-формат, Story 8.2 включена). Этот файл — краткая проектная справка.
+> Полная актуальная версия PRD: `_bmad-output/planning-artifacts/prds/prd-core-2026-10-25/prd.md` (BMAD-формат, Stories 8.2–8.4 включены). Этот файл — краткая проектная справка.
 
 ## 1. Overview
 
@@ -114,4 +114,4 @@ smeta1 — система для автоматизации обработки �
 - Очередь конвейера — таблица `spec_job` в Postgres, отдельный брокер не вводится.
 - Модель эмбеддингов — `intfloat/multilingual-e5-small` (384), CPU.
 - `match_feedback` — append-only; повторное действие добавляет событие. Обучение модели автоматически не запускается.
-- Текущий matching возвращает top-1 без abstention; неверные пары исправляются вручную (Story 8.2).
+- Текущий matching возвращает top-1 без abstention; неверные пары исправляются вручную (Stories 8.2–8.5): чекбокс «Верно», выбор материала из справочника и ссылка `estimate_item.material_id`.

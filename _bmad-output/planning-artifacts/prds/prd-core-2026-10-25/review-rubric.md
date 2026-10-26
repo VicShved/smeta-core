@@ -13,7 +13,7 @@ What breaks decision-readiness is the confirmation loop. §4.6 says «Полны
 ### Findings
 
 - **[critical]** No MVP path to a calculable estimate (§4.6, §4.8 FR-011, FR-009, UJ-2 Resolution) — The UI «не подтверждает позиции», the validation screen is deferred to 1.1, and the total includes only `confirmed`/`corrected`; yet UJ-2 says Anna confirms positions and UJ-3 assumes «активная версия с подтверждёнными позициями». As written, the shipped UI can match and display but not produce the product's headline number. *Fix:* decide and state one of two contracts — either add a minimal per-row confirm/correct control to the MVP estimate screen (moving it out of the 1.1 non-goal), or make `proposed` matched positions eligible for calculation with a visible "unconfirmed" marker, and update FR-009/UJ-2/UJ-3 accordingly.
-- **[medium]** Q3 is not actually open (§11 Q3, FR-006) — «Нужен ли fallback на зону по умолчанию, если для периода нет цен?» is already answered by FR-006 «Ненайденная позиция получает `rate_catalog_id=null`, `confidence=0`» and by §6.1 «за точный период/зону». Keeping it open invites a downstream reader to build a fallback the PRD forbids. *Fix:* close Q3 with the FR-006 rule and move the remaining question (whether a default-zone policy is desirable in 1.1) to a deferred item.
+- **[medium]** Q3 is not actually open (§11 Q3, FR-006) — «Нужен ли fallback на зону по умолчанию, если для периода нет цен?» is already answered by FR-006 «Ненайденная позиция получает `material_id=null`, `confidence=0`» and by §6.1 «за точный период/зону». Keeping it open invites a downstream reader to build a fallback the PRD forbids. *Fix:* close Q3 with the FR-006 rule and move the remaining question (whether a default-zone policy is desirable in 1.1) to a deferred item.
 - **[medium]** Q2 contradicts an already-made commitment (§11 Q2 vs §8, FR-012/FR-013) — The PRD asks «Нужен ли per-company флаг согласия на облако при глобальном `LLM_ALLOW_CLOUD`?» while §8 already fixes the model as a global flag plus per-call `X-Allow-Cloud`, and FR-013 has no per-company consent field. An open question that the body has effectively answered in the opposite direction is a decision disguised as a question. *Fix:* either resolve Q2 in the body (global flag + per-call header is the MVP answer) or add the per-company consent field to FR-012/FR-013 and §6.1 so the question has real scope.
 
 ## Substance over theater — adequate
@@ -90,7 +90,7 @@ The shape matches the product. It is an internal tool with a small operator grou
 
 ## Resolution (2026-10-26)
 
-- **Critical — no UI path to calculable estimate:** partially resolved by Story 8.2. UI has per-row «Неверно»/«Исправить» по ссылке; corrected positions входят в расчёт. `confirm` без изменения остаётся API-only; это зафиксировано в PRD.
+- **Critical — no UI path to calculable estimate:** resolved Stories 8.2–8.4. UI has per-row чекбокс «Верно» (`confirm`/`reject`) и «Исправить» с модальным выбором материала; corrected positions входят в расчёт.
 - **High — end-to-end value metric:** добавлен SM-9 (время до проверенного итога, цель после пилота).
 - **High — extraction state machine:** FR-005 описывает `queued/running/succeeded/failed` и фазы.
 - **High — spec replacement vs frozen calculation:** FR-005 разрешает замену только для нерассчитанной активной версии, иначе `409`.

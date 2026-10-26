@@ -39,7 +39,7 @@ flowchart TD
 ### AD-002: Snapshot расценок
 - **Binds:** rate-catalog, estimate, estimate_version, estimate_item
 - **Prevents:** пересчёт ранее рассчитанных активных версий смет при изменении справочника
-- **Rule:** При расчёте версии сметы сохраняются `rate_snapshot_id`, `unit_snapshot`, `rate_amount_snapshot`. Последующий импорт/изменение цены в `rate-catalog` не влияет на уже рассчитанные версии смет. Поле `rate_catalog_id` — провенанс: по нему при расчёте захватывается снапшот строки расценки; в формулах участвует `rate_amount_snapshot`.
+- **Rule:** При расчёте версии сметы сохраняются `rate_snapshot_id`, `unit_snapshot`, `rate_amount_snapshot`. Последующий импорт/изменение цены в `rate-catalog` не влияет на уже рассчитанные версии смет. Поле `material_id` — провенанс материала; цену за период сметы захватывает `rate_snapshot_id`, а в формулах участвует `rate_amount_snapshot`.
 
 ### AD-003: Гибрид LLM с редукцией данных
 - **Binds:** llm-gateway, llm-proxy, spec-service, pdf-extract
@@ -111,7 +111,7 @@ flowchart TD
 ### AD-016: Семантическое сопоставление по эмбеддингам [ADOPTED]
 - **Binds:** rate-catalog, estimate
 - **Prevents:** ручной перебор расценок и LLM-арифметика при сопоставлении позиций сметы
-- **Rule:** `rate-catalog` хранит `material_embedding` (E5-small, 384 измерения, HNSW cosine) и endpoint `POST /v1/rate-catalog/matches`: для каждого наименования считается query-эмбеддинг, выбирается ближайшая **цена** за точный регион/год/квартал/зону. `estimate` сохраняет `rate_catalog_id`, `rate_code` и `confidence` (cosine score 0..1, 4 знака), статус остаётся `proposed`; `needs_review` — по порогу 0.70. LLM в сопоставлении не участвует. Векторы считает фоновый воркер `rate-catalog` (`embedding_job`), доступный по API/UI.
+- **Rule:** `rate-catalog` хранит `material_embedding` (E5-small, 384 измерения, HNSW cosine) и endpoint `POST /v1/rate-catalog/matches`: для каждого наименования считается query-эмбеддинг, выбирается ближайшая **цена** за точный регион/год/квартал/зону. `estimate` сохраняет `material_id`, `rate_code` и `confidence` (cosine score 0..1, 4 знака), статус становится `confirmed`; `needs_review` — по порогу 0.70. LLM в сопоставлении не участвует. Векторы считает фоновый воркер `rate-catalog` (`embedding_job`), доступный по API/UI.
 
 ## Services (микросервисные границы)
 - **api-gateway** — маршрутизация, **проверка JWT (единственная точка)**, установка/перезапись identity-заголовков, rate-limits при необходимости
@@ -199,7 +199,7 @@ flowchart LR
 - **stage** (id, company_id, contract_id, name, ...)
 - **estimate** (id, company_id, contract_id, stage_id, name, source_file_id?, catalog_region_code?, catalog_year?, catalog_quarter?, catalog_zone?, ...) — привязка к этапу (уровень «подраздел этапа» упразднён 2026-10-20); период справочника nullable и заполняется успешным сопоставлением
 - **estimate_version** (id, estimate_id, version_no, is_active, calculated_at, **total_cost**, ...) — ровно одна is_active
-- **estimate_item** (id, estimate_version_id, row_ref, manufacturer, name, unit_orig, unit_normalized?, qty, section, rate_catalog_id?, **rate_code**, **rate_snapshot_id**, **unit_snapshot**, **rate_amount_snapshot**, confidence, status, **cost**, ...)
+- **estimate_item** (id, estimate_version_id, row_ref, manufacturer, name, unit_orig, unit_normalized?, qty, section, **material_id?**, **rate_code**, **rate_snapshot_id**, **unit_snapshot**, **rate_amount_snapshot**, confidence, status, reviewed_at?, **cost**, ...)
 - **region** (code, name) — субъект РФ
 - **material** (id, region_code, code, name, unit, group_code?, group_name?) — уникален по `(region_code, code)`; каталог глобальный, без `company_id`
 - **material_base_price** (material_id PK, release_price?, base_estimate_price?, imported_at, source_file_hash, created_by?) — региональная база 2022, 1:1 к материалу
@@ -234,7 +234,7 @@ flowchart LR
 5. **Сопоставить со справочником** → `UI`/`estimate`
    `POST /v1/estimates/{id}/versions/{vid}/match-rates` с регионом/годом/кварталом/зоной;
    `estimate` вызывает `POST /v1/rate-catalog/matches` (pgvector cosine), сохраняет
-   `rate_catalog_id`, `rate_code`, `confidence` только у `proposed`-позиций.
+   `material_id`, `rate_code`, `confidence` у `proposed`/авто-подтверждённых позиций.
 6. **Проверить и рассчитать** → ручная проверка (`confirm`/`correct`) и
    детерминированный `POST .../calculate` в `estimate`.
 

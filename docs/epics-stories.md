@@ -585,11 +585,27 @@ So that не искать её вручную и сразу видеть сто�
 **Given** активная нерассчитанная версия сметы и период (регион/год/квартал/зона)
 **When** вызывается `POST /v1/estimates/{id}/versions/{vid}/match-rates`
 **Then** `rate-catalog` по E5-эмбеддингам возвращает ближайшую цену за точный период/зону
-**And** `estimate` сохраняет `rate_catalog_id`, `rate_code`, `confidence` (cosine 0..1, 4 знака) только у `proposed`-позиций
-**And** `confirmed`/`corrected` не перезаписываются и попадают в `skipped`
-**And** ненайденные позиции очищаются (`rate_catalog_id=null`, `confidence=0`)
+**And** `estimate` сохраняет `material_id`, `rate_code`, `confidence` (cosine 0..1, 4 знака); найденная позиция становится `confirmed` (Story 8.3)
+**And** позиции с ручным решением (`reviewed_at`) не перезаписываются и попадают в `skipped`; авто-подтверждённые пересопоставляются
+**And** ненайденные позиции очищаются (`material_id=null`, `confidence=0`)
 **And** рассчитанная/неактивная версия — `409`; чужая смета/версия — `404`; недоступность справочника — `502` без частичных записей
 **And** UI сохраняет период в смете и показывает кнопку «Сопоставить со справочником»
+
+### Story 8.2: Обратная связь и ручная привязка материала
+
+**As-built:** позиция получила `rejected` и `correction_link`, добавлен append-only `match_feedback` (миграция `0008`). `PATCH .../items/{id}` принимает `confirm|correct|reject`; `correct` — по ссылке `/prices`, коду или `material_id`; каждое действие пишет событие. В UI — «Неверно»/«Исправить», в `/prices` — copy-link. Экспорт `python -m app.tools.export_match_feedback --format jsonl`. Lookup расценки по коду — `GET /v1/rate-catalog/rates/lookup`.
+
+### Story 8.3: «Верно» по умолчанию и удобная проверка таблицы
+
+**As-built:** найденная при `match-rates` расценка сохраняется как `confirmed` с `reviewed_at=null`. Любое ручное решение заполняет `reviewed_at`; повторное сопоставление обновляет авто-подтверждённые позиции и пропускает ручные. В таблице — чекбокс «Верно» (`confirm`/`reject`), первая колонка наименования и колонка действий закреплены. Миграции `0009_reviewed_at.py` (колонка) и `0010_auto_confirm_existing.py` (backfill старых matched-позиций).
+
+### Story 8.4: Выбор материала из справочника
+
+**As-built:** «Исправить» открывает модальный справочник за период сметы. Поиск `q` в `GET /v1/rate-catalog/prices` идёт по коду ИЛИ наименованию; выбор отправляет `correct` с `material_id`. `estimate` ищет цену материала за период сметы и отвечает `422`, если цены нет. Отмена/Escape/клик по фону не меняют позицию.
+
+### Story 8.5: Ссылка на материал справочника
+
+**As-built:** `estimate_item.rate_catalog_id` (строка цены) заменён на `material_id` — логическую ссылку на `rate_catalog.material.id`. Цена по-прежнему берётся за период сметы; `rate_snapshot_id` фиксирует строку цены в рассчитанной версии. `rate-catalog` отдаёт `material_id` в `RateResponse` и принимает `material_ids` в `GET /rates`. Миграции `0011` (добавление и backfill) и `0012` (удаление старой колонки); backfill выполнен для 792 позиций и 5 событий feedback.
 
 ## Внеплановые истории: настройки LLM
 
