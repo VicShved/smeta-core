@@ -1,30 +1,167 @@
 # Review: rubric walker (good-spine checklist)
 
-- Verdict: **pass with findings** — 1 high, 2 medium, 1 low.
-- Reviewer: rubric walker (good-spine checklist), run inline (subagents unavailable in this environment).
+- **Артефакт:** `ARCHITECTURE-SPINE.md` (317 строк, `updated: 2026-10-26`).
+- **Контекст:** PRD `prd-core-2026-10-25/prd.md` — FR-018/FR-019, §3.1, FR-006/FR-007/FR-009/FR-010, §8; addendum §4b.
+- **Метод:** checklist «good spine» + сверка с фактическим кодом в `smeta/<service>/` и lock-файлами.
+- **Verdict:** **FAIL — нужна переработка до старта реализации.**
+- **Counts:** 5 high, 5 medium, 2 low.
+
+## Почему fail
+
+Spine хорошо фиксирует основную линию «estimate владеет расчётом и пересчётом, rate-catalog — источник цены и ЕИ» и корректно описывает большинство старых инвариантов. Но новая модель пересчёта ЕИ (AD-017/AD-018) в текущем виде неисполнима без взаимоисключающих трактовок: она противоречит AD-013, содержит неразрешимый приоритет ручного коэффициента, не фиксирует момент проверки согласованности ЕИ перед расчётом и не описывает миграцию/backfill. Заголовок «As-built sync» при этом не соответствует коду: AD-001/AD-002/AD-017/AD-018 описывают схему и формулу, которых в brownfield ещё нет. Для build-спеки этого достаточно, чтобы два разработчика реализовали разные стоимости и разные истории.
 
 ## Findings
 
-### R-1 (high) — company scoping of child rows is under-specified
-AD-013 declares `company_id` required on *all* domain rows, yet the Data Model omits it for `stage`, `stage_subdivision`, `estimate` (they reach a company only through `contract`). Two units obeying the AD to the letter build incompatibly: one denormalizes `company_id` onto children, the other derives it through the parent and cannot filter "in the repository" as the Rule demands.
-**Fix applied:** AD-013 now names where the key physically lives (aggregate roots + directly-addressable child rows) and how positions are scoped; the Data Model lists `company_id` on `contract`, `estimate`, `stage`, `stage_subdivision`, `rate_catalog`.
+### RH-1 (high) — «As-built sync» ложен: AD-001/AD-002/AD-017/AD-018 противоречат текущему коду, миграция и backfill не определены
 
-### R-2 (medium) — trust boundary of the internal network was implicit
-AD-010 proves identity only at the edge. The checklist's operational/environmental envelope wants the trust assumption stated, not assumed: any process inside the compose network can mint `X-User-Id`. Two units could disagree on whether to re-validate headers.
-**Fix applied:** added the convention "internal network is the trust boundary" and a Deferred entry for mTLS.
+**Где:** `ARCHITECTURE-SPINE.md:16` (заголовок про синхронизацию с кодом), `:39` (AD-001), `:44` (AD-002), `:121` (AD-017), `:126` (AD-018), `:214` (Data Model), `:297` (Deferred «Схема БД детально … миграции»).
 
-### R-3 (medium) — API contract versioning absent from conventions
-AD-009 promises "versioned contracts" but no convention says how a service versions its API, so two services pick different schemes (`/v1` vs header vs none).
-**Fix applied:** convention row — contracts versioned in the path (`/v1/...`).
+**Факт в коде:**
+- Текущая формула — `qty × rate_amount`, а не `qty_catalog_snapshot × rate_amount_snapshot`: `estimate/app/domain/cost.py:45-51`; `estimate/app/application/calculate_cost.py:145-149`.
+- В `estimate_item` сейчас есть только `rate_snapshot_id`, `unit_snapshot`, `rate_amount_snapshot`; полей `qty_catalog`, `unit_catalog`, `conversion_factor`, `qty_catalog_snapshot`, `conversion_factor_snapshot` нет: `estimate/app/infrastructure/models.py:126-132`, `estimate/migrations/versions/0001_create_estimate.py:84-88`.
+- Последняя миграция estimate — `0015`; миграции под `unit_conversion_rule`/`unit_conversion_audit` и новые поля отсутствуют.
+- Addendum прямо фиксирует: «Новые поля nullable; backfill рассчитанных версий не выполняется» (`addendum.md:56`), но в spine этого нет.
 
-### R-4 (low) — AD-012 retry semantics unspecified
-`auth-users → company-org` create-company call with a retry could duplicate companies; compensation is mentioned, idempotency is not.
-**Fix applied:** AD-012 Rule now requires an idempotency key.
+**Почему это divergence:** у уже рассчитанных версий `qty_catalog_snapshot` будет `NULL`, поэтому AD-001 в его нынешней формулировке к ним неприменим. Один разработчик оставит старые итоги на `qty`, другой сделает backfill `qty_catalog = qty`, `conversion_factor = 1`, `unit_catalog = unit_snapshot`; итоги, diff и `total_cost` разойдутся. Кроме того, «используются только snapshot-поля» неверно для первого расчёта: цена и ЕИ читаются из rate-catalog в момент расчёта (`calculate_cost.py:70-77`, `:100-106`).
 
-## Checked and clean
-- AD IDs ascending, unique, none renumbered (AD-001…AD-015).
-- Every AD has Binds/Prevents/Rule; each Rule is enforceable.
-- Deferred items cannot let two units diverge (schema details are per-service; broker choice carries a revisit condition).
-- Brownfield ratification: `llm-gateway` matches its description; the AD-011 exception is explicit.
-- No spec drove this run; the Capability → Architecture Map covers Epic 1–2.
-- Dimensions: paradigm, boundaries, data, auth, tenancy, storage, deployment (MVP compose; k8s Deferred), operations (logs + deferred metrics/backups) — all decided or deferred.
+**Что зафиксировать:** явный migration/backfill-контракт в spine: (а) какие поля nullable и для каких строк; (б) что считается для legacy-рассчитанных версий; (в) backfill `qty_catalog_snapshot = qty`, `conversion_factor_snapshot = 1`, `unit_catalog = unit_snapshot` либо явный отказ от backfill с правилом отображения/diff для `NULL`; (г) порядок миграций и seed словаря. Deferred «схема БД и миграции — истории эпиков» для этой модели слишком широк.
+
+### RH-2 (high) — AD-018 ослабляет AD-013: глобальная таблица в `estimate` не включена в исключения tenancy
+
+**Где:** `ARCHITECTURE-SPINE.md:100-101` (AD-013), `:126` (AD-018), `:228` (`unit_conversion_rule` без `company_id`), `:229` (`unit_conversion_audit`).
+
+**Почему это divergence:** AD-013 требует: «Каждый сервис … фильтровать все выборки по `company_id` в репозитории. Запрос без `company_id` невозможен». Исключения перечислены только для `rate-catalog` и глобальных каталогов `spec-service`. AD-018 добавляет глобальные данные в `estimate` — сервис, который AD-013 прямо называет среди tenant-сервисов. Реализация не может одновременно удовлетворить оба AD: либо `estimate` делает исключение для словаря (и AD-013 нарушен), либо фильтрует по `company_id` и глобальный словарь ломается. Два разработчика выберут разные варианты, и один из них получит либо утечку, либо неработающий словарь.
+
+**Что зафиксировать:** добавить `unit_conversion_rule`/`unit_conversion_audit` в исключения AD-013 с явным правилом: глобальные, без `company_id`, читать/писать может любой аутентифицированный, репозиторные методы для них не требуют `company_id`; либо вынести словарь в отдельный глобальный сервис. Сейчас это классический случай «новый AD ослабляет существующий».
+
+### RH-3 (high) — AD-017 ставит ручной коэффициент последним, а PRD FR-007 требует, чтобы он переопределял словарь
+
+**Где:** `ARCHITECTURE-SPINE.md:121` (AD-017: «… → упаковочное правило → ручной коэффициент»), `prd.md:262` («Ручной `conversion_factor` … переопределяет словарь»), `prd.md:299` (тот же порядок), `prd.md:543` (индекс решений: «ручной коэффициент … переопределяет правило»).
+
+**Почему это divergence:** при наличии и словарного правила, и ручного коэффициента одно чтение AD-017 даёт словарный коэффициент (он выше), другое — ручной (он «переопределяет»). Это прямо влияет на `qty_catalog` и `cost`, то есть на SM-10/SM-11. Кроме того, AD-017 не говорит, что повторный `match-rates` не должен затирать `conversion_source=manual`; PRD FR-007 это требует (`prd.md:262`).
+
+**Что зафиксировать:** ручной коэффициент — **высший приоритет** (explicit override), а не последний fallback; автоматические правила применяются только при отсутствии `manual`; `match-rates` не перезаписывает `manual`. Либо изменить PRD, но тогда spine и PRD должны говорить одно и то же.
+
+### RH-4 (high) — Нет инварианта согласованности ЕИ в момент расчёта: после смены `material.unit` можно молча посчитать неверную стоимость
+
+**Где:** `ARCHITECTURE-SPINE.md:39` (AD-001), `:44` (AD-002), `:121` (AD-017), `prd.md:515` (R-13: «Смена ЕИ материала в справочнике после привязки»), `prd.md:552` (решение: пересчёт при следующем действии).
+
+**Почему это divergence:** AD-017 пересчитывает `qty_catalog` при `match-rates`/`correct`/ручном коэффициенте и по явному действию, но не требует проверки при `calculate`. Расчёт по AD-001/AD-002 берёт текущую цену и текущий `unit` из rate-catalog (`calculate_cost.py:70-77`, `:100-106`) и сохраняет `unit_snapshot`, но `qty_catalog` мог быть посчитан для старой ЕИ. Пример: материал привязан как `шт`, `qty_catalog=10`; импорт меняет `material.unit` на `кг`; `calculate` берёт цену за кг и `qty_catalog=10` от `шт`. Один разработчик пересчитает/заблокирует позицию, другой доверится сохранённому `qty_catalog` — получится молчаливо неверная стоимость, запрещённая NFR `ARCHITECTURE-SPINE.md:289` и SM-10.
+
+**Что зафиксировать:** в AD-001/AD-017 добавить precondition расчёта: `unit_catalog` равен `material.unit` (или `rate.unit`) на момент расчёта; при расхождении — детерминированный пересчёт по текущему правилу либо `conversion_required` и позиция вне итога. Зафиксировать, что `unit_snapshot` и `unit_catalog` в снапшоте обязаны совпадать с ЕИ цены.
+
+### RH-5 (high) — Модель `unit_conversion_rule` не позволяет выполнить заявленные проверки и не задаёт базовые единицы
+
+**Где:** `ARCHITECTURE-SPINE.md:126` (AD-018: «коэффициент к базовой единице», «отсутствие противоречивых алиасов и циклов»), `:228` (поля `alias`, `dimension`, `factor_to_base`, `multiple?`, `kind`, `priority`), `prd.md:317-320` (UI показывает размерные/упаковочные правила; проверки на противоречивый алиас/цикл).
+
+**Почему это divergence:**
+- Не названа **каноническая базовая единица** для каждого измерения (`length` → m или mm? `mass` → kg или t? `area`/`volume` — m²/m³?). Без неё `factor_to_base` у двух реализаций будет разным, а общий глобальный словарь станет несовместимым.
+- Нет ограничения уникальности `alias`/нормализованного алиаса, поэтому «противоречивые алиасы» невозможно отклонить `422` детерминированно.
+- Нет поля ссылки на базовый/целевой алиас, поэтому «циклы» невыразимы: правило `alias → factor_to_base` — плоская таблица, циклов в ней нет. Либо проверка циклов фиктивна, либо в схеме не хватает рёбер.
+- `kind` включает `dimensions|package`, но в строке нет ни размеров изделия, ни веса/тарности, ни целевой ЕИ; UI не сможет показать «размерные и упаковочные правила» (FR-019), а код не поймёт, какую запись применять.
+- `multiple?` и `factor_to_base` не имеют правила композиции: применять оба или один?
+
+**Что зафиксировать:** базовые единицы по измерениям; уникальность нормализованного алиаса; поля `target_unit`/`base_alias` или явное решение, что размерные/упаковочные правила живут только в коде и не хранятся в таблице; алгоритм проверки циклов; правило композиции `factor_to_base` + `multiple`; что именно редактирует UI для `kind=dimensions|package`.
+
+### RM-1 (medium) — `rate_snapshot_id` не является иммутабельным снапшотом: `material_price` обновляется in place
+
+**Где:** `ARCHITECTURE-SPINE.md:44` (AD-002: «цену за период сметы захватывает `rate_snapshot_id`»), `:74` (AD-008: версий справочника нет, импорт обновляет строки), `rate-catalog/app/application/import_rates.py:708-715`, `rate-catalog/app/infrastructure/repository.py:210`.
+
+**Почему это divergence:** `rate_snapshot_id` — это id строки `material_price`, которую повторный импорт обновляет (`update_price`), а не версия. Сам по себе id не «захватывает» цену; защищает только `rate_amount_snapshot`. Один разработчик может решить, что для расчёта достаточно разрешить `rate_snapshot_id` в текущую цену, и исторические итоги поедут. Формулировка AD-002 провоцирует именно такую ошибку.
+
+**Что зафиксировать:** назвать `rate_snapshot_id` только провенансом/ссылкой; прямой запрет читать текущую цену по нему для рассчитанных версий; либо ввести иммутабельные версии цен. Явно сказать, что единственный источник истины для денег — `rate_amount_snapshot`.
+
+### RM-2 (medium) — AD-016 даёт неполное определение `needs_review` и расходится с §3/FR-007
+
+**Где:** `ARCHITECTURE-SPINE.md:116` (AD-016: «`needs_review` — производный флаг (порог 0.70 или `conversion_required`)»), `prd.md:99` и `prd.md:274` (полное правило: `conversion_required` или `confidence < 0.70` **и** `reviewed_at` пуст **и** статус не `rejected`/`no_match`).
+
+**Почему это divergence:** по AD-016 уже проверенная позиция с `confidence < 0.70` или `rejected` будет помечена `needs_review`; по PRD — нет. Два разработчика дадут разный API-флаг и разный UI. Это не косметика: от флага зависит ручная очередь и SM-3.
+
+**Что зафиксировать:** перенести в AD-016 точный предикат из §3/FR-007, включая `reviewed_at` и исключения статусов.
+
+### RM-3 (medium) — Stack-таблица не «verified-current» и не ратифицирует brownfield
+
+**Где:** `ARCHITECTURE-SPINE.md:154` (FastAPI 0.146.0), `:157` (SQLAlchemy 2.1.5), `:158` (Alembic 1.20.0), `:162` (MinIO `RELEASE.2025-10-15T17-29-55Z`).
+
+**Факт:**
+- На 2026-10-26 актуальный FastAPI — 0.162.0 (PyPI), а в сервисах зафиксированы 0.143.3 (`estimate/uv.lock:111`, `api-gateway/uv.lock:93`, `auth-users/uv.lock:115`, `company-org/uv.lock:111`), 0.159.1 (`spec-service/uv.lock`), 0.160.0 (`llm-proxy/uv.lock`). Ни один сервис не использует 0.146.0.
+- SQLAlchemy/Alembic в `spec-service` — 2.1.6/1.20.1, в остальных — 2.1.5/1.20.0.
+- MinIO в spine закреплён точным релизом, а compose использует `alpine/minio:latest-release` (`deploy/docker-compose.yml:138`).
+
+**Почему это divergence:** в полирепозитории единая таблица «одна версия на всех» либо ложна, либо провоцирует синхронное обновление, которого нет. «Последняя» версия в spine не совпадает ни с latest, ни с lock-файлами; MinIO-пин не соответствует деплою. Это ломает checklist «named tech is verified-current» и «ratifies brownfield».
+
+**Что зафиксировать:** либо baseline-диапазоны (`FastAPI >=0.143,<0.163`), либо матрица «сервис → версия»; обновить FastAPI/SQLAlchemy/Alembic и MinIO-пин; для MinIO — digest, а не `latest-release`.
+
+### RM-4 (medium) — Capability Map не покрывает ручную обратную связь, деградацию, удаление и diff; операционный конверт неполон
+
+**Где:** `ARCHITECTURE-SPINE.md:273-281` (Capability Map), `:296` (Deferred «операционный охват»), `prd.md:276-285` (FR-017/FR-018: append-only `match_feedback` и экспорт), `prd.md:370-386` (FR-014/FR-015), `prd.md:348` (FR-010: diff включает `qty_catalog`, `unit_catalog`, `conversion_factor`), `prd.md:509` (R-7: таймауты gateway 120/600/900 с).
+
+**Почему это divergence:**
+- В карте нет строк для FR-007/FR-017 (`match_feedback`, аудит, JSONL-экспорт), FR-014 (деградация `rates_unavailable`/`source_unavailable`), FR-015 (каскадное удаление). Для append-only журнала нет AD — только упоминание в Data Model (`ARCHITECTURE-SPINE.md:227`), поэтому его инвариант ничем не защищён.
+- AD-007 говорит только «структура готова к diff» (`:69`), но PRD FR-010 требует diff по `qty_catalog`/`unit_catalog`/`conversion_factor`; в текущем `estimate/app/domain/diff.py:44-55` этих полей нет. Два разработчика сделают разный diff.
+- Deferred отправляет observability/backups/k8s в «перед продом», но не фиксирует таймауты/ретраи/лимиты памяти и политику хранения. PRD R-7 задаёт конкретные таймауты, а spine — нет. Для 8 ГБ хоста с 10 сервисами, Postgres, MinIO и локальной LLM это реальная развилка по ресурсам и поведению при деградации.
+
+**Что зафиксировать:** добавить в карту строки для feedback/audit, деградации, удаления и diff; ввести AD или явное правило append-only для `match_feedback`; зафиксировать таймауты/ретраи/бюджет памяти и политику хранения (или явно deferred с revisit-условием, но не молча).
+
+### RM-5 (medium) — AD-017 не задаёт нормализацию ЕИ и грамматику размеров достаточно, чтобы исключить «разнобой правил»
+
+**Где:** `ARCHITECTURE-SPINE.md:121` (AD-017), `prd.md:299-300` (приоритет, разделители `x/х/×/*`, 2–3 измерения, mm/cm/m, без единицы — мм), `prd.md:525` (Q7).
+
+**Почему это divergence:** AD-017 заявляет, что предотвращает «разнобой правил пересчёта между реализациями», но не определяет:
+- что такое «нормализованное совпадение» (`м2`/`м²`, `кг`/`kg`, регистр, пробелы, кириллица/латиница, `куб.м`);
+- как выбирать размерное правило, если размеры есть и в `unit_orig`, и в `name`, и там разные значения;
+- как трактовать несколько групп размеров в одном наименовании, `NxM` с единицами только у одного измерения, `200х300` при ЕИ `м³`;
+- какое измерение выбирать при 2D/3D и как округлять промежуточные площади/объёмы.
+
+PRD оставляет это в Q7 как assumption, но spine не помечает это как open question/Deferred. Два разработчика реализуют разные парсеры и получат разные `qty_catalog` на одном PDF, что прямо бьёт по SM-11.
+
+**Что зафиксировать:** либо точная грамматика/нормализация в AD-017 (таблица алиасов, порядок источников, выбор измерения, округление), либо явный open question с блокировкой реализации до ответа Q7.
+
+### RL-1 (low) — AD-011: «flat-модуль, 417 строк» не соответствует текущему llm-gateway
+
+**Где:** `ARCHITECTURE-SPINE.md:89`.
+
+**Факт:** `llm-gateway/app/*.py` — 1426 строк в 9 модулях (`main.py`, `openai_api.py`, `llama_client.py`, `model_artifacts.py` и др.), а не 417 строк. Само исключение из AD-011 полезно, но «as-built»-деталь устарела и подрывает доверие к остальным «сверено с кодом» утверждениям.
+
+**Что зафиксировать:** убрать число или обновить его; описать фактическую структуру.
+
+### RL-2 (low) — Несогласованные перечисления `kind` и `conversion_source`
+
+**Где:** `ARCHITECTURE-SPINE.md:121` (`conversion_source identity|dictionary|dimensions|package|manual`), `:228` (`kind identity|dictionary|multiple|dimensions|package`).
+
+**Почему это divergence:** `multiple` есть в `kind`, но отсутствует в `conversion_source`; не сказано, что `kind=multiple` пишется как `source=dictionary`. Один разработчик запишет `source=multiple`, другой — `dictionary`, и отчётность/аудит разойдутся. Мелочь, но дешёво исправляется.
+
+**Что зафиксировать:** одно перечисление и явное отображение `kind → source`.
+
+## Checklist: итог
+
+| Пункт | Оценка | Комментарий |
+|---|---|---|
+| Фиксирует реальные точки расхождения и ничего не пропускает | **fail** | Пропущены migration/backfill, согласованность ЕИ в момент расчёта, базовая единица словаря, tenancy словаря. |
+| Каждый AD enforceable и предотвращает заявленное расхождение | **fail** | AD-001 (nullable/округление), AD-002 (мутабельный `rate_snapshot_id`), AD-016 (неполный `needs_review`), AD-017 (приоритет/нормализация), AD-018 (циклы/алиасы/базовые единицы). |
+| Deferred не позволяет двум юнитам разойтись | **fail** | `Схема БД детально … миграции` слишком широко; нет seed словаря, backfill, таймаутов/лимитов. |
+| Названный стек verified-current | **fail** | FastAPI 0.146.0 не current и не в lock; MinIO-пин не совпадает с compose; SQLAlchemy/Alembic drift. |
+| Ратифицирует, а не противоречит brownfield | **fail** | «As-built sync» ложен для AD-001/AD-002/AD-017/AD-018; текущая формула — `qty × rate_amount`. |
+| Покрывает нужные возможности PRD | **partial** | FR-018/FR-019 покрыты, но карта не покрывает FR-007/FR-010/FR-014/FR-015/FR-017. |
+| Новый AD не ослабляет существующий | **fail** | AD-018 против AD-013; AD-017 против FR-007 (переопределение ручного коэффициента). |
+| Все структурные измерения решены/deferred/open | **partial** | Парадигма, границы, auth, tenancy, storage, compose решены; ресурсы/таймауты/retention/backfill — нет. |
+
+## Проверено и чисто
+
+- AD-001…AD-018 идут по возрастанию, уникальны, не переименованы; у каждого есть Binds/Prevents/Rule.
+- Владение `estimate` ↔ `rate-catalog` ↔ `ui` для пересчёта в целом непротиворечиво: `estimate` — словарь/правила/пересчёт, `rate-catalog` — `material.unit`/цена, UI — редактор без клиентского пересчёта (`ARCHITECTURE-SPINE.md:119-126`, `:279`).
+- Запрет прямых межсервисных join'ов и обязательность API согласуются с AD-014.
+- JWT edge-only, identity-заголовки, trust boundary внутренней сети и company scoping (кроме найденного исключения словаря) описаны достаточно для старых эпиков.
+- UUID/ISO-8601/RFC 7807/Decimal/`/v1` — конвенции пригодны для исполнения.
+- Для рассчитанных версий снапшоты действительно защищают от последующих изменений словаря/справочника (при условии исправления RH-1/RH-4/RM-1).
+- Deferred по версионированию словаря, company-оверрайдам и автоподбору коэффициентов в целом безопасен: рассчитанные версии защищены, нерассчитанные — принятый риск.
+
+## Что смотреть в первую очередь при правке
+
+1. **RH-1 + RH-4:** зафиксировать legacy/backfill и момент проверки ЕИ — без этого нельзя писать ни расчёт, ни миграции.
+2. **RH-2 + RH-5:** привести AD-018 в исполнимый вид (tenancy exception, базовые единицы, уникальность, циклы, размерные/упаковочные правила).
+3. **RH-3 + RM-2:** синхронизировать предикаты и приоритеты с FR-007/§3.1.
+4. **RM-3:** привести Stack к фактическому состоянию или сделать его baseline.
+5. **RM-4 + RM-5:** дополнить карту и решить, является ли Q7 open question, блокирующим реализацию.
+
+*Spine не изменялся; все правки выше — рекомендации.*
