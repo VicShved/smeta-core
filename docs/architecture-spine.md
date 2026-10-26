@@ -3,11 +3,11 @@ name: 'smeta1'
 type: architecture-spine
 purpose: build-substrate
 altitude: system
-paradigm: 'DDD-границы + service-per-capability, hexagonal (ports & adapters) внутри сервисов'
+paradigm: 'DDD-границы + service-per-capability, Clean Architecture внутри сервисов'
 scope: 'инварианты, удерживающие сервисы smeta1 и инфраструктуру деплоя от расхождений'
 status: final
 created: 2026-10-17
-updated: 2026-10-25
+updated: 2026-10-26
 binds: ['api-gateway', 'auth-users', 'company-org', 'estimate', 'pdf-extract', 'llm-gateway', 'llm-proxy', 'spec-service', 'rate-catalog', 'ui', 'deploy']
 sources: []
 companions: []
@@ -18,7 +18,7 @@ companions: []
 ## Paradigm
 - **Domain-driven boundaries + service-per-capability**. Микросервисы с чёткими границами по домену (org, estimate, catalog, extraction).
 - **Determinism first**: расчёт стоимости полностью детерминирован. LLM — только извлечение спецификации, **не** арифметика.
-- **Чистая архитектура внутри сервиса** (AD-011): слои domain → application → infrastructure → transport.
+- **Clean Architecture внутри сервиса** (AD-011): слои domain → application → infrastructure → transport.
 - **Направление зависимостей** (правило, а не рекомендация):
 
 ```mermaid
@@ -81,10 +81,11 @@ flowchart TD
 - **Prevents:** разнобой схем аутентификации между сервисами; раздача секрета по всем сервисам; подделка identity при прямом обращении к сервису
 - **Rule:** JWT **HS256**, единый HMAC-секрет известен **только** auth-users и api-gateway. Выпускает токены только auth-users. **Подпись проверяет только api-gateway**; к внутренним сервисам снаружи попасть нельзя — из бэкенда экспонируется лишь api-gateway; UI публикуется отдельным фронтенд-контейнером (внутренние сервисы используют `expose`, без `ports`). Claims: `sub` (user_id), `company_id`, `role` (`estimator` для публичной регистрации, `admin` для bootstrap), `iat`, `exp`. TTL access-токена — **168ч (7 дней)**; refresh-токенов нет (повторный логин). Внутрь identity передаётся заголовками `X-User-Id`, `X-Company-Id`, `X-Role`; api-gateway **обязан удалять/перезаписывать** входящие заголовки с этими именами; сервисы токен не парсят и берут identity только из заголовков. Вызовы сервис-ту-сервис пробрасывают те же заголовки.
 
-### AD-011: Чистая архитектура сервисов [ADOPTED]
+### AD-011: Clean Architecture сервисов [ADOPTED]
 - **Binds:** все сервисы, **кроме llm-gateway** (исключение)
 - **Prevents:** зависимость бизнес-логики от фреймворка и БД; дрейф стилей между сервисами; непокрываемость домена тестами без поднятия инфраструктуры
-- **Rule:** Слои внутри сервиса: **domain** (сущности, value objects, порты) → **application** (use cases, оркестрация) → **infrastructure** (адаптеры: БД, HTTP-клиенты, LLM, S3) → **transport** (FastAPI-роуты, схемы запросов/ответов). Зависимости только внутрь (см. диаграмму в Paradigm); `domain`/`application` не импортируют FastAPI, SQLAlchemy и прочие адаптеры; внешние системы доступны только через порты. Исключение: **llm-gateway** написан до этого решения (flat-модуль, 417 строк) — перестраивается при первом крупном изменении или отдельной историей.
+- **Rule:** Слои внутри сервиса: **domain** (сущности, value objects, интерфейсы) → **application** (use cases, оркестрация) → **infrastructure** (адаптеры: БД, HTTP-клиенты, LLM, S3) → **transport** (FastAPI-роуты, схемы запросов/ответов). Зависимости только внутрь (см. диаграмму в Paradigm); `domain`/`application` не импортируют FastAPI, SQLAlchemy и прочие адаптеры; внешние системы доступны только через интерфейсы (границы). Исключение: **llm-gateway** написан до этого решения (flat-модуль, 417 строк) — перестраивается при первом крупном изменении или отдельной историей.
+- **Терминология:** файл `app/domain/ports.py` — историческое имя набора интерфейсов границ Clean Architecture; в документации используем «интерфейсы/границы», код не переименовывается.
 
 ### AD-012: Владение user и company [ADOPTED]
 - **Binds:** auth-users, company-org
@@ -187,7 +188,7 @@ flowchart LR
   est --> pg
 ```
 
-Публикация портов: наружу выходят `ui` (`UI_PORT`, по умолчанию 8080) и
+Публикация сетевых портов: наружу выходят `ui` (`UI_PORT`, по умолчанию 8080) и
 `api-gateway` (8000); `postgres` (5432) и `minio` (9000/9001) — только на
 `127.0.0.1` для хостовой разработки. Остальные сервисы доступны только во
 внутренней сети compose (`expose`).
