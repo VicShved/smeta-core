@@ -212,6 +212,7 @@ flowchart LR
 - **llm_provider** (name PK, display_name, base_url, api_key_env?, timeouts, enabled) и **llm_model** (alias PK, provider_name, proxy_alias, upstream_model?, context_tokens, max_output_tokens, chunk_chars, chars_per_token, prompt_reserve_tokens, response_format, thinking?, cloud, enabled) — глобальные каталоги
 - **company_llm_setting** (company_id PK, active_alias, updated_by?, updated_at) — активная модель компании
 - **llm_config_audit** (id, user_id?, action, entity_type, entity_name, changes, created_at) — аудит изменений каталога
+- **match_feedback** (id, company_id, estimate_id, version_id, item_id, decision, query snapshot, proposed/corrected rate, correction_link, comment, period, source, created_by, created_at) — append-only журнал ручных решений по сопоставлению (Story 8.2)
 
 ### Окружения
 - **MVP:** локальный `docker-compose` (`smeta/deploy/`); наружу экспонируются **ui** (8080) и **api-gateway** (8000). `postgres` (5432) и `minio` (9000/9001) опубликованы только на `127.0.0.1` для хостовой разработки; остальные сервисы — во внутренней сети (`expose`).

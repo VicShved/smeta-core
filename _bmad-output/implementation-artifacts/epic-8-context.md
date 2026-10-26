@@ -9,6 +9,7 @@
 ## Stories
 
 - Story 8.1: Сопоставление позиций сметы со справочником цен по эмбеддингам — done.
+- Story 8.2: Обратная связь и ручная привязка материала — done.
 
 ## Requirements & Constraints
 
@@ -33,6 +34,14 @@
 - Рассчитанная версия заморожена: период и кнопка недоступны.
 - После успеха показываются счётчики (`total`, `processed`, `matched`, `unmatched`, `skipped`) и таблица перезагружается с первой страницы.
 - Недоступность справочника показывается текстом с кнопкой повтора; позиции и итоги остаются видимыми.
+
+## Story 8.2 (as-built 2026-10-26)
+
+- В позиции добавлены `status=rejected` и `correction_link`; каждое решение пишется в append-only `match_feedback`.
+- Review API: `confirm`/`correct`/`reject`, `rate_link`/`rate_code`/`rate_catalog_id`, `comment`.
+- `rate-catalog` получил `GET /rates/lookup`; UI — кнопки «Неверно»/«Исправить» и copy-link в `/prices`.
+- Экспорт JSONL: `python -m app.tools.export_match_feedback`.
+- Алгоритм сопоставления (attributes/rerank) в эту историю не входил.
 
 ## Cross-Story Dependencies
 
