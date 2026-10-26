@@ -1,5 +1,5 @@
 generated: '2026-10-17'
-last_updated: '10-26-2026 15:25'
+last_updated: '10-26-2026 15:40'
 project: smeta1
 project_key: NOKEY
 tracking_system: file-system
@@ -432,3 +432,16 @@ action_items:
     owner: "dev"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-8-retro-10-25-2026.md"
+  - id: "epic-8-closeout-context"
+    epic: 8
+    action: "Обновить epic-8-context под Stories 8.1–8.8 и актуальную семантику"
+    owner: "dev"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-close-out-10-26-2026.md"
+  - id: "epic-8-closeout-ui-e2e"
+    epic: 8
+    action: "Добавить браузерный e2e ручной проверки: correct, unmatch, reviewed_by,
+      пагинация"
+    owner: "dev"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-8-retro-close-out-10-26-2026.md"
