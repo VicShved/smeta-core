@@ -124,7 +124,7 @@ flowchart TD
 - **spec-service** — асинхронная оркестрация по `file_id`: очередь задач в Postgres, каталог LLM-провайдеров/моделей и активная модель компании, публикация конфигурации в llm-proxy, текст из pdf-extract, извлечение через llm-proxy, `chunks/*` и `specification.json` в папке PDF, аудит настроек LLM
 - **rate-catalog** — глобальный справочник регионов/материалов/цен: импорт Excel (.xlsx), маппер колонок, база 2022, цены по кварталам/зонам, pgvector-эмбеддинги, фоновые задачи
 - **s3/minio** — хранение загруженных PDF, импортируемых Excel, артефактов спецификации и GGUF-модели
-- **ui (Vue)** — UI MVP: вход, дерево, загрузка PDF, стадии, экран сметы, справочник цен, импорт справочника, настройки LLM (валидация маппинга/diff — 1.1)
+- **ui (Vue)** — UI MVP: вход, дерево, загрузка PDF, стадии, экран сметы, справочник цен, импорт справочника, настройки LLM, валидация маппинга (diff — 1.1)
 
 ## Consistency Conventions
 
@@ -212,7 +212,7 @@ flowchart LR
 - **llm_provider** (name PK, display_name, base_url, api_key_env?, timeouts, enabled) и **llm_model** (alias PK, provider_name, proxy_alias, upstream_model?, context_tokens, max_output_tokens, chunk_chars, chars_per_token, prompt_reserve_tokens, response_format, thinking?, cloud, enabled) — глобальные каталоги
 - **company_llm_setting** (company_id PK, active_alias, updated_by?, updated_at) — активная модель компании
 - **llm_config_audit** (id, user_id?, action, entity_type, entity_name, changes, created_at) — аудит изменений каталога
-- **match_feedback** (id, company_id, estimate_id, version_id, item_id, decision, query snapshot, proposed/corrected rate, correction_link, comment, period, source, created_by, created_at) — append-only журнал ручных решений по сопоставлению (Story 8.2)
+- **match_feedback** (id, company_id, estimate_id, version_id, item_id, decision `confirm|correct|reject|unmatch`, query snapshot, proposed/corrected material, correction_link, comment, period, source, created_by, created_at) — append-only журнал ручных решений по сопоставлению (Stories 8.2/8.7)
 
 ### Окружения
 - **MVP:** локальный `docker-compose` (`smeta/deploy/`); наружу экспонируются **ui** (8080) и **api-gateway** (8000). `postgres` (5432) и `minio` (9000/9001) опубликованы только на `127.0.0.1` для хостовой разработки; остальные сервисы — во внутренней сети (`expose`).
@@ -234,7 +234,7 @@ flowchart LR
 5. **Сопоставить со справочником** → `UI`/`estimate`
    `POST /v1/estimates/{id}/versions/{vid}/match-rates` с регионом/годом/кварталом/зоной;
    `estimate` вызывает `POST /v1/rate-catalog/matches` (pgvector cosine), сохраняет
-   `material_id`, `rate_code`, `confidence` у `proposed`/авто-подтверждённых позиций.
+   `material_id`, `rate_code`, `confidence` у `proposed`/авто-подтверждённых позиций; у ручных `corrected`/`no_match` confidence пустой.
 6. **Проверить и рассчитать** → ручная проверка (`confirm`/`correct`) и
    детерминированный `POST .../calculate` в `estimate`.
 
@@ -270,7 +270,7 @@ job и артефакты. При недоступности pdf-extract сме�
 - Локальная LLM CPU-only 8 ГБ RAM, GGUF q2–q3, без GPU
 
 ## Deferred (не фиксируем в spine)
-- **UI деталей**: валидация маппинга UI, UI diff — **1.1**
+- **UI деталей**: UI diff — **1.1**
 - **Refresh-токены и ротация секрета**: при TTL 168ч не нужны; revisit при ужесточении требований безопасности
 - **Операционный охват**: k8s-деплой, observability (метрики/трейсинг), backups, управление секретами — revisit перед продовым окружением
 - **Схема БД детально** (таблицы, индексы, миграции) — владеют истории эпиков

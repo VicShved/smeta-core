@@ -6,6 +6,8 @@ This is a substantive PRD with a real thesis — «LLM извлекает спе
 
 ## Decision-readiness — thin
 
+> Историческая оценка PRD до реализации Stories 8.2–8.8. Актуальный статус находок — в разделе «Resolution (2026-10-26)».
+
 The PRD usually states decisions rather than considerations, and it names what was given up: addendum §6 rejects cloud-only LLM, LLM-based mapping, a separate queue broker, per-company catalogs, and versioned catalogs with reasons. The access decision is unusually candid — §8 «Доступ» says «серверной проверки `admin` нет (решение 2026-10-25)» and R-6 records the residual risk instead of smoothing it. That is the right register.
 
 What breaks decision-readiness is the confirmation loop. §4.6 says «Полный экран валидации — 1.1, но API и базовый просмотр есть в MVP», while §4.8 says «UI не пересчитывает суммы и не подтверждает позиции», and FR-009 says «В итог входят только `confirmed`/`corrected` позиции». UJ-2's resolution nonetheless has «Анна подтверждает или исправляет спорные позиции». A decision-maker cannot tell whether the MVP can produce a non-empty total through the product or only through hand-issued API calls. The second problem is open-question hygiene: Q3 is answered by the body, and Q2 collides with a commitment already made in §8.
@@ -90,7 +92,7 @@ The shape matches the product. It is an internal tool with a small operator grou
 
 ## Resolution (2026-10-26)
 
-- **Critical — no UI path to calculable estimate:** resolved Stories 8.2–8.4. UI has per-row чекбокс «Верно» (`confirm`/`reject`) и «Исправить» с модальным выбором материала; corrected positions входят в расчёт.
+- **Critical — no UI path to calculable estimate:** resolved Stories 8.2–8.8. UI has per-row чекбокс «Верно» (`confirm`/`reject`), «Исправить» с модальным выбором материала, «Нет в справочнике», логин автора исправления и пагинацию; corrected positions входят в расчёт.
 - **High — end-to-end value metric:** добавлен SM-9 (время до проверенного итога, цель после пилота).
 - **High — extraction state machine:** FR-005 описывает `queued/running/succeeded/failed` и фазы.
 - **High — spec replacement vs frozen calculation:** FR-005 разрешает замену только для нерассчитанной активной версии, иначе `409`.
@@ -99,8 +101,8 @@ The shape matches the product. It is an internal tool with a small operator grou
 - **Medium — Q2/Q3:** закрыты в PRD (глобальный cloud-флаг + per-call consent; fallback на зону не вводится).
 - **Medium — Igor ownership:** зафиксировано как операционная роль, не enforced.
 - **Medium — omissions:** добавлены non-goals для восстановления аккаунта, валют/НДС, concurrent editing, удаления справочника.
-- **Medium — UI adjectives:** FR-011 называет конкретные действия/статусы; пустые состояния остаются на уровне 1.1.
+- **Medium — UI adjectives:** FR-011 называет конкретные действия/статусы, включая пустые состояния и ручную проверку.
 - **Medium — model activation in-flight:** FR-013 фиксирует, что активация действует на новые задачи, ошибка публикации сохраняет прежнюю модель.
 - **Medium — materials vs works:** PRD больше не заявляет тип позиции/работы, которого нет в API; справочник — материалы/цены.
 - **Low — error type/timeout:** FR-003 называет problem `type`; R-7 — таймауты 120/600/900 с.
-- **Deferred:** полный UI валидации/diff, top-K альтернативы, улучшение matching (атрибуты/rerank/abstention) — вне MVP.
+- **Deferred:** UI diff, top-K альтернативы, улучшение matching (атрибуты/rerank/abstention) — вне MVP.

@@ -61,7 +61,7 @@ context:
 
 ## Implementation Notes
 
-- Для `unmatch` очищаются `material_id`, `rate_code`, `correction_link`, `confidence=0`; `unit_normalized` остаётся исходной.
+- Для `unmatch` очищаются `material_id`, `rate_code`, `correction_link`, `confidence=NULL`; `unit_normalized` остаётся исходной.
 - `update_item` теперь сохраняет `confidence`, чтобы идемпотентность `unmatch` работала.
 - `match_feedback.decision` расширен значением `unmatch`.
 
